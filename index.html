@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Drive — HTML Drive</title>
+<style>
+:root{
+  --blue:#1a73e8;--blue2:#0b57d0;--bg:#f8fafd;--surface:#fff;
+  --text:#202124;--muted:#5f6368;--line:#dadce0;--hover:#f1f3f4;
+  --selected:#e8f0fe;--shadow:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15)
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+button,input{font:inherit}
+header{
+  height:64px;background:var(--surface);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;padding:0 18px;position:sticky;top:0;z-index:20
+}
+.logo{display:flex;align-items:center;gap:10px;width:230px;color:#5f6368;font-size:22px;white-space:nowrap}
+.logoMark{width:34px;height:34px;border-radius:6px;background:#1a73e8;color:white;display:grid;place-items:center;font-size:19px;font-weight:700}
+.search{flex:1;max-width:720px;position:relative}
+.search input{
+ width:100%;height:48px;border:0;background:#e9eef6;border-radius:24px;
+ padding:0 20px 0 48px;font-size:16px;outline:none;color:#202124
+}
+.search input:focus{background:#fff;box-shadow:inset 0 0 0 1px #dadce0,0 1px 3px rgba(60,64,67,.25)}
+.search span{position:absolute;left:18px;top:13px;color:#5f6368;font-size:22px}
+.headerBtns{margin-left:auto;display:flex;align-items:center;gap:4px}
+.iconBtn{
+ width:42px;height:42px;border:0;border-radius:50%;background:transparent;cursor:pointer;
+ color:#5f6368;font-size:20px
+}
+.iconBtn:hover{background:var(--hover)}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:calc(100vh - 64px)}
+aside{background:#fff;padding:14px 10px;border-right:1px solid #eee}
+.new{
+ display:flex;align-items:center;gap:10px;height:52px;padding:0 20px;border:1px solid #dadce0;
+ border-radius:16px;background:#fff;box-shadow:0 1px 2px rgba(60,64,67,.2);cursor:pointer;
+ font-weight:500;font-size:15px;color:#202124;margin:2px 0 13px 4px
+}
+.new:hover{box-shadow:0 2px 5px rgba(60,64,67,.25)}
+.plus{font-size:26px;color:#1a73e8;font-weight:300}
+nav{display:grid;gap:2px}
+nav button{
+ border:0;background:transparent;text-align:left;height:36px;padding:0 14px;border-radius:0 18px 18px 0;
+ color:#3c4043;cursor:pointer
+}
+nav button:hover{background:#f1f3f4}
+nav button.active{background:#e8f0fe;color:#0b57d0;font-weight:600}
+.storage{
+ margin:22px 14px 0;padding-top:15px;border-top:1px solid #e0e0e0;color:#5f6368
+}
+.storageTitle{margin-bottom:9px;color:#3c4043}
+.progress{height:5px;background:#e0e0e0;border-radius:5px;overflow:hidden}
+.progress i{display:block;height:100%;background:#1a73e8;width:9%}
+.storage small{display:block;margin-top:8px;line-height:1.45}
+main{padding:16px 24px 30px;overflow:hidden}
+.topline{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+h1{font-size:22px;font-weight:400;margin:0;flex:1}
+.actions{display:flex;align-items:center;gap:3px}
+.btn{
+ height:38px;padding:0 12px;border:0;background:transparent;border-radius:7px;color:#5f6368;cursor:pointer
+}
+.btn:hover{background:#f1f3f4}
+.count{color:#5f6368;font-size:13px;margin-right:6px}
+.crumb{display:flex;align-items:center;gap:2px;color:#5f6368;font-size:14px;margin:4px 0 14px;min-height:28px}
+.crumb span.click{cursor:pointer;color:#3c4043;padding:5px 7px;border-radius:5px}
+.crumb span.click:hover{background:#f1f3f4}
+.drop{
+ border:1px dashed #c5d7f5;background:#f8fbff;border-radius:12px;padding:12px 16px;
+ color:#5f6368;margin:0 0 14px;text-align:left
+}
+.drop b{color:#3c4043;margin-right:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.card{
+ background:#fff;border:1px solid #dadce0;border-radius:10px;min-height:145px;padding:14px;
+ cursor:pointer;display:flex;flex-direction:column;box-shadow:none;transition:.12s
+}
+.card:hover{background:#f8fafd;border-color:#c7c9cc;box-shadow:0 1px 2px rgba(60,64,67,.18)}
+.card.selected{background:#e8f0fe;border-color:#aecbfa}
+.icon{font-size:34px;margin:4px 0 17px 1px}
+.name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#202124}
+.meta{font-size:12px;color:#5f6368;margin-top:8px}
+.empty{
+ padding:90px 20px;text-align:center;color:#5f6368;background:transparent;border:0
+}
+.modal{position:fixed;inset:0;background:rgba(32,33,36,.62);display:none;z-index:50}
+.modal.open{display:flex}
+.viewer{
+ margin:auto;background:#fff;width:min(1200px,95vw);height:min(92vh,920px);
+ overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3)
+}
+.viewerBar{height:56px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:5px;padding:0 10px}
+.viewerTitle{font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.viewerBody{flex:1;background:#f1f3f4;overflow:auto}
+.viewerBody iframe{width:100%;height:100%;border:0;background:#fff}
+.viewerBody img{display:block;max-width:96%;max-height:96%;margin:2% auto;object-fit:contain}
+.textPreview{
+ white-space:pre-wrap;word-break:break-word;background:#fff;margin:24px auto;padding:32px;
+ max-width:900px;min-height:80%;font-family:Consolas,monospace;line-height:1.55
+}
+.toast{position:fixed;left:24px;bottom:24px;background:#202124;color:#fff;padding:12px 16px;border-radius:5px;display:none;z-index:90;box-shadow:var(--shadow)}
+.toast.show{display:block}
+.ctx{
+ position:fixed;display:none;background:#fff;border-radius:4px;box-shadow:0 4px 12px rgba(60,64,67,.25);
+ z-index:80;padding:7px 0;min-width:190px
+}
+.ctx button{display:block;border:0;background:#fff;width:100%;text-align:left;padding:9px 18px;cursor:pointer;color:#202124}
+.ctx button:hover{background:#f1f3f4}
+@media(max-width:800px){
+ .logo{width:55px}.logo span{display:none}.app{grid-template-columns:200px 1fr}
+ main{padding:16px}.grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><div class="logoMark">△</div><span>Drive</span></div>
+  <div class="search"><span>⌕</span><input id="search" placeholder="Tìm trong Drive"></div>
+  <div class="headerBtns">
+    <button class="iconBtn" title="Trợ giúp">?</button>
+    <button class="iconBtn" title="Cài đặt">⚙</button>
+    <button class="iconBtn" title="Ứng dụng">▦</button>
+  </div>
+</header>
+
+<div class="app">
+  <aside>
+  <button class="new" id="uploadBtn"><span class="plus">＋</span> Tải tệp lên</button>
+  <input id="fileInput" type="file" multiple hidden>
+  <nav>
+    <button class="active" data-view="all">🗂️ Tất cả tệp</button>
+    <button data-view="pdf">📕 PDF</button>
+    <button data-view="image">🖼️ Hình ảnh</button>
+    <button data-view="text">📄 Văn bản</button>
+  </nav>
+  <div class="storage">
+    <div class="storageTitle">💾 Bộ nhớ</div>
+    <div class="progress"><i></i></div>
+    <small>Dữ liệu được lưu cục bộ trên thiết bị.</small>
+    <button class="btn" id="clearBtn" style="padding-left:0;margin-top:7px">Xóa dữ liệu</button>
+  </div>
+</aside>
+
+  <main>
+    <div class="topline">
+      <h1 id="title">Tất cả tệp</h1>
+      <div class="actions"><span class="count" id="count"></span><button class="btn" id="folderBtn">＋ Thư mục</button></div>
+    </div>
+    <div class="drop" id="drop"><b>Kéo & thả file vào đây</b> hoặc bấm “Tải tệp lên”. File được lưu cục bộ.</div>
+    <div class="crumb" id="crumb"></div>
+    <section id="content"></section>
+  </main>
+</div>
+
+<div class="modal" id="modal">
+  <div class="viewer">
+    <div class="viewerBar">
+      <div class="viewerTitle" id="viewerTitle"></div>
+      <button class="btn" id="downloadBtn">Tải xuống</button>
+      <button class="btn" id="closeBtn">Đóng</button>
+    </div>
+    <div class="viewerBody" id="viewerBody"></div>
+  </div>
+</div>
+
+<div class="ctx" id="ctx">
+  <button id="ctxOpen">Mở</button>
+  <button id="ctxDownload">Tải xuống</button>
+  <button id="ctxDelete">Xóa</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DB_NAME = 'MyDriveDB_v1';
+const STORE = 'items';
+let db, currentFolder = 'root', currentView = 'all', currentFile = null, objectURL = null;
+
+const $ = id => document.getElementById(id);
+
+function toast(msg){
+  $('toast').textContent = msg; $('toast').classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(()=> $('toast').classList.remove('show'), 2300);
+}
+function uid(){return crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random()}
+function fmtSize(n){
+  if(n < 1024) return n+' B';
+  const u=['KB','MB','GB','TB']; let i=-1; do{n/=1024;i++}while(n>=1024&&i<u.length-1);
+  return n.toFixed(n>=100?0:1)+' '+u[i];
+}
+function iconFor(x){
+  if(x.kind==='folder') return '📁';
+  if(x.type==='application/pdf') return '📕';
+  if(x.type.startsWith('image/')) return '🖼️';
+  if(x.type.startsWith('text/')) return '📄';
+  if(x.name.endsWith('.doc')||x.name.endsWith('.docx')) return '📝';
+  if(x.name.endsWith('.zip')||x.name.endsWith('.rar')||x.name.endsWith('.7z')) return '🗜️';
+  return '📦';
+}
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(DB_NAME,1);
+    req.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains(STORE)){
+        const s=d.createObjectStore(STORE,{keyPath:'id'});
+        s.createIndex('parent','parent');
+        s.createIndex('kind','kind');
+      }
+    };
+    req.onsuccess=e=>{db=e.target.result;resolve(db)};
+    req.onerror=()=>reject(req.error);
+  });
+}
+function put(item){
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(STORE,'readwrite');
+    tx.objectStore(STORE).put(item);
+    tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error);
+  });
+}
+function get(id){
+  return new Promise((resolve,reject)=>{
+    const r=db.transaction(STORE).objectStore(STORE).get(id);
+    r.onsuccess=()=>resolve(r.result); r.onerror=()=>reject(r.error);
+  });
+}
+function allItems(){
+  return new Promise((resolve,reject)=>{
+    const r=db.transaction(STORE).objectStore(STORE).getAll();
+    r.onsuccess=()=>resolve(r.result); r.onerror=()=>reject(r.error);
+  });
+}
+async function del(id){ await new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(id);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)}); }
+async function clearDB(){ await new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).clear();tx.oncomplete=res;tx.onerror=()=>rej(tx.error)}); }
+
+async function importFiles(files){
+  let count=0;
+  for(const f of files){
+    await put({id:uid(),kind:'file',name:f.name,size:f.size,type:f.type||'application/octet-stream',parent:currentFolder,created:Date.now(),blob:f});
+    count++;
+  }
+  toast(`Đã thêm ${count} tệp`);
+  render();
+}
+async function addFolder(name,parent=currentFolder){
+  name=name.trim(); if(!name) return;
+  await put({id:uid(),kind:'folder',name,size:0,type:'folder',parent,created:Date.now()});
+  render(); toast('Đã tạo thư mục');
+}
+
+async function render(){
+  const items = await allItems();
+  let list=items.filter(x=>x.parent===currentFolder);
+  const q=$('search').value.trim().toLowerCase();
+  if(q) list=items.filter(x=>x.name.toLowerCase().includes(q));
+  if(currentView==='pdf') list=list.filter(x=>x.kind==='file'&&x.type==='application/pdf');
+  if(currentView==='image') list=list.filter(x=>x.kind==='file'&&x.type.startsWith('image/'));
+  if(currentView==='text') list=list.filter(x=>x.kind==='file'&&x.type.startsWith('text/'));
+  list.sort((a,b)=>a.kind===b.kind?a.name.localeCompare(b.name):a.kind==='folder'?-1:1);
+
+  $('count').textContent = `${list.length} mục`;
+  $('title').textContent = currentView==='all'?(currentFolder==='root'?'Tất cả tệp':'Thư mục'):({pdf:'PDF',image:'Hình ảnh',text:'Văn bản'}[currentView]);
+  const path=[];
+  let p=currentFolder;
+  if(currentFolder!=='root'){
+    while(p!=='root'){
+      const f=items.find(x=>x.id===p); if(!f) break; path.unshift(f); p=f.parent;
+    }
+  }
+  $('crumb').innerHTML = `<span class="click" onclick="goRoot()">My Drive</span>` + path.map((f,i)=>`<span>›</span><span class="click" onclick="goFolder('${f.id}')">${escapeHtml(f.name)}</span>`).join('');
+
+  if(!list.length){$('content').innerHTML='<div class="empty">Chưa có tệp ở đây.</div>';return}
+  $('content').innerHTML='<div class="grid">'+list.map(x=>`
+    <div class="card" data-id="${x.id}">
+      <div class="icon">${iconFor(x)}</div>
+      <div class="name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}</div>
+      <div class="meta">${x.kind==='folder'?'Thư mục':fmtSize(x.size)} · ${new Date(x.created).toLocaleDateString('vi-VN')}</div>
+    </div>`).join('')+'</div>';
+  document.querySelectorAll('.card').forEach(c=>{
+    c.addEventListener('dblclick',()=>activate(c.dataset.id));
+    c.addEventListener('contextmenu',e=>{e.preventDefault();showCtx(e.clientX,e.clientY,c.dataset.id)});
+  });
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+async function activate(id){
+  const x=await get(id);
+  if(!x) return;
+  if(x.kind==='folder'){currentFolder=x.id;currentView='all';document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view==='all'));render();return}
+  openViewer(x);
+}
+async function openViewer(x){
+  currentFile=x; $('viewerTitle').textContent=x.name; $('viewerBody').innerHTML='';
+  if(objectURL){URL.revokeObjectURL(objectURL);objectURL=null}
+  objectURL=URL.createObjectURL(x.blob);
+  if(x.type==='application/pdf'){
+    $('viewerBody').innerHTML=`<iframe src="${objectURL}#toolbar=1&navpanes=0&view=FitH"></iframe>`;
+  }else if(x.type.startsWith('image/')){
+    $('viewerBody').innerHTML=`<img src="${objectURL}" alt="">`;
+  }else if(x.type.startsWith('text/')){
+    const text=await x.blob.text();
+    $('viewerBody').innerHTML='<pre class="textPreview"></pre>';
+    $('viewerBody').firstChild.textContent=text;
+  }else{
+    $('viewerBody').innerHTML=`<div class="empty" style="margin:40px">Trình duyệt này không có trình xem trực tiếp cho loại file này.<br><br><b>${escapeHtml(x.name)}</b><br><br>Hãy dùng “Tải xuống” để mở bằng ứng dụng trên máy.</div>`;
+  }
+  $('modal').classList.add('open');
+}
+function downloadCurrent(){
+  if(!currentFile)return;
+  const u=URL.createObjectURL(currentFile.blob), a=document.createElement('a');
+  a.href=u;a.download=currentFile.name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
+}
+let ctxId=null;
+function showCtx(x,y,id){ctxId=id;$('ctx').style.left=x+'px';$('ctx').style.top=y+'px';$('ctx').style.display='block'}
+document.addEventListener('click',e=>{if(!e.target.closest('.ctx'))$('ctx').style.display='none'});
+
+$('uploadBtn').onclick=()=>$('fileInput').click();
+$('fileInput').onchange=e=>importFiles(e.target.files);
+$('folderBtn').onclick=()=>{const n=prompt('Tên thư mục:');if(n)addFolder(n)};
+$('search').oninput=render;
+$('clearBtn').onclick=async()=>{if(confirm('Xóa toàn bộ tệp và thư mục khỏi trình duyệt này?')){await clearDB();currentFolder='root';render();toast('Đã xóa dữ liệu')}};
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{currentView=b.dataset.view;document.querySelectorAll('nav button').forEach(z=>z.classList.remove('active'));b.classList.add('active');render()});
+$('drop').ondragover=e=>{e.preventDefault();$('drop').classList.add('drag')};
+$('drop').ondragleave=()=>$('drop').classList.remove('drag');
+$('drop').ondrop=e=>{e.preventDefault();$('drop').classList.remove('drag');importFiles(e.dataTransfer.files)};
+$('closeBtn').onclick=()=>{$('modal').classList.remove('open');if(objectURL){URL.revokeObjectURL(objectURL);objectURL=null}};
+$('downloadBtn').onclick=downloadCurrent;
+$('modal').onclick=e=>{if(e.target===$('modal'))$('closeBtn').click()};
+$('ctxOpen').onclick=async()=>{const x=await get(ctxId);if(x){$('ctx').style.display='none';activate(x.id)}};
+$('ctxDownload').onclick=async()=>{const x=await get(ctxId);if(x&&x.kind==='file'){const u=URL.createObjectURL(x.blob),a=document.createElement('a');a.href=u;a.download=x.name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}$('ctx').style.display='none'};
+$('ctxDelete').onclick=async()=>{if(ctxId&&confirm('Xóa mục này?')){await del(ctxId);$('ctx').style.display='none';render();toast('Đã xóa')}};
+
+window.goRoot=()=>{currentFolder='root';render()};
+window.goFolder=id=>{currentFolder=id;currentView='all';render()};
+
+(async()=>{
+  await openDB();
+  if((await allItems()).length===0){
+    await put({id:'root',kind:'folder',name:'My Drive',parent:null,size:0,type:'folder',created:Date.now()});
+  }
+  render();
+})();
+</script>
+
+<script>
+document.addEventListener('keydown', e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='u'){e.preventDefault();document.getElementById('fileInput').click();}
+  if(e.key==='Escape') document.getElementById('closeBtn')?.click();
+});
+</script>
+</body>
+</html>
+
+<script>
+(function(){
+  const oldRender = window.render;
+})();
+</script>
