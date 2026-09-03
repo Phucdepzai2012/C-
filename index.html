@@ -3,36 +3,131 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Drive — Shared Firebase Drive</title>
+<title>My Drive — HTML Drive</title>
 <style>
-:root{--blue:#1a73e8;--bg:#f8fafd;--surface:#fff;--text:#202124;--muted:#5f6368;--line:#dadce0;--hover:#f1f3f4;--selected:#e8f0fe}
-*{box-sizing:border-box}body{margin:0;font-family:Arial,Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px}button,input{font:inherit}
-header{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 18px;position:sticky;top:0;z-index:20}
-.logo{display:flex;align-items:center;gap:10px;width:230px;color:#5f6368;font-size:22px;white-space:nowrap}.logoMark{width:34px;height:34px;border-radius:6px;background:#1a73e8;color:white;display:grid;place-items:center;font-size:19px;font-weight:700}
-.search{flex:1;max-width:720px}.search input{width:100%;height:48px;border:0;background:#e9eef6;border-radius:24px;padding:0 20px;font-size:16px;outline:none}.search input:focus{background:#fff;box-shadow:inset 0 0 0 1px #dadce0,0 1px 3px rgba(60,64,67,.25)}
-.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:calc(100vh - 64px)}aside{background:#fff;padding:14px 10px;border-right:1px solid #eee}
-.new{display:flex;align-items:center;gap:10px;height:52px;padding:0 20px;border:1px solid #dadce0;border-radius:16px;background:#fff;box-shadow:0 1px 2px rgba(60,64,67,.2);cursor:pointer;font-weight:500;font-size:15px;color:#202124;margin:2px 0 13px 4px}.new:hover{box-shadow:0 2px 5px rgba(60,64,67,.25)}
-.plus{font-size:26px;color:#1a73e8;font-weight:300}nav{display:grid;gap:2px}nav button{border:0;background:transparent;text-align:left;height:36px;padding:0 14px;border-radius:0 18px 18px 0;color:#3c4043;cursor:pointer}nav button:hover,nav button.active{background:#e8f0fe;color:#0b57d0;font-weight:600}
-.storage{margin:22px 14px 0;padding-top:15px;border-top:1px solid #e0e0e0;color:#5f6368}.storageTitle{margin-bottom:9px;color:#3c4043}.progress{height:5px;background:#e0e0e0;border-radius:5px;overflow:hidden}.progress i{display:block;height:100%;background:#1a73e8;width:0;transition:.15s}.storage small{display:block;margin-top:8px;line-height:1.45}
-main{padding:16px 24px 30px;overflow:hidden}.topline{display:flex;align-items:center;gap:12px;margin-bottom:6px}h1{font-size:22px;font-weight:400;margin:0;flex:1}.actions{display:flex;align-items:center;gap:3px}.btn{height:38px;padding:0 12px;border:0;background:transparent;border-radius:7px;color:#5f6368;cursor:pointer}.btn:hover{background:#f1f3f4}.count{color:#5f6368;font-size:13px;margin-right:6px}
-.drop{border:1px dashed #c5d7f5;background:#f8fbff;border-radius:12px;padding:12px 16px;color:#5f6368;margin:0 0 14px}.drop b{color:#3c4043;margin-right:6px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}.card{background:#fff;border:1px solid #dadce0;border-radius:10px;min-height:145px;padding:14px;cursor:pointer;display:flex;flex-direction:column;box-shadow:none;transition:.12s}.card:hover{background:#f8fafd;border-color:#c7c9cc;box-shadow:0 1px 2px rgba(60,64,67,.18)}
-.icon{height:58px;font-size:34px;margin:4px 0 7px 1px;display:flex;align-items:center}.thumb{width:76px;height:58px;object-fit:cover;border-radius:6px}.name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#202124}.meta{font-size:12px;color:#5f6368;margin-top:8px}.empty{padding:90px 20px;text-align:center;color:#5f6368}
-.progressList{display:grid;gap:8px;margin-bottom:14px}.uploadItem{background:#fff;border:1px solid #dadce0;border-radius:10px;padding:10px}.uploadTop{display:flex;justify-content:space-between;gap:10px}.uploadName{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.uploadBar{height:6px;background:#eceff1;border-radius:99px;overflow:hidden;margin-top:7px}.uploadBar i{display:block;width:0;height:100%;background:#34a853;transition:width .1s}.uploadState{font-size:11px;color:#5f6368;margin-top:5px}
-.modal{position:fixed;inset:0;background:rgba(32,33,36,.62);display:none;z-index:50}.modal.open{display:flex}.viewer{margin:auto;background:#fff;width:min(1200px,95vw);height:min(92vh,920px);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3)}.viewerBar{height:56px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:5px;padding:0 10px}.viewerTitle{font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.viewerBody{flex:1;background:#f1f3f4;overflow:auto}.viewerBody iframe{width:100%;height:100%;border:0;background:#fff}.viewerBody img,.viewerBody video{display:block;max-width:96%;max-height:96%;margin:2% auto}.textPreview{white-space:pre-wrap;word-break:break-word;background:#fff;margin:24px auto;padding:32px;max-width:900px;min-height:80%;font-family:Consolas,monospace;line-height:1.55}
-.toast{position:fixed;left:24px;bottom:24px;background:#202124;color:#fff;padding:12px 16px;border-radius:5px;display:none;z-index:90}.toast.show{display:block}.error{background:#b3261e}.ctx{position:fixed;display:none;background:#fff;border-radius:4px;box-shadow:0 4px 12px rgba(60,64,67,.25);z-index:80;padding:7px 0;min-width:190px}.ctx button{display:block;border:0;background:#fff;width:100%;text-align:left;padding:9px 18px;cursor:pointer}.ctx button:hover{background:#f1f3f4}
-@media(max-width:800px){.logo{width:55px}.logo span{display:none}.app{grid-template-columns:200px 1fr}main{padding:16px}.grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}}
+:root{
+  --blue:#1a73e8;--blue2:#0b57d0;--bg:#f8fafd;--surface:#fff;
+  --text:#202124;--muted:#5f6368;--line:#dadce0;--hover:#f1f3f4;
+  --selected:#e8f0fe;--shadow:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15)
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+button,input{font:inherit}
+header{
+  height:64px;background:var(--surface);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;padding:0 18px;position:sticky;top:0;z-index:20
+}
+.logo{display:flex;align-items:center;gap:10px;width:230px;color:#5f6368;font-size:22px;white-space:nowrap}
+.logoMark{width:34px;height:34px;border-radius:6px;background:#1a73e8;color:white;display:grid;place-items:center;font-size:19px;font-weight:700}
+.search{flex:1;max-width:720px;position:relative}
+.search input{
+ width:100%;height:48px;border:0;background:#e9eef6;border-radius:24px;
+ padding:0 20px 0 48px;font-size:16px;outline:none;color:#202124
+}
+.search input:focus{background:#fff;box-shadow:inset 0 0 0 1px #dadce0,0 1px 3px rgba(60,64,67,.25)}
+.search span{position:absolute;left:18px;top:13px;color:#5f6368;font-size:22px}
+.headerBtns{margin-left:auto;display:flex;align-items:center;gap:4px}
+.iconBtn{
+ width:42px;height:42px;border:0;border-radius:50%;background:transparent;cursor:pointer;
+ color:#5f6368;font-size:20px
+}
+.iconBtn:hover{background:var(--hover)}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:calc(100vh - 64px)}
+aside{background:#fff;padding:14px 10px;border-right:1px solid #eee}
+.new{
+ display:flex;align-items:center;gap:10px;height:52px;padding:0 20px;border:1px solid #dadce0;
+ border-radius:16px;background:#fff;box-shadow:0 1px 2px rgba(60,64,67,.2);cursor:pointer;
+ font-weight:500;font-size:15px;color:#202124;margin:2px 0 13px 4px
+}
+.new:hover{box-shadow:0 2px 5px rgba(60,64,67,.25)}
+.plus{font-size:26px;color:#1a73e8;font-weight:300}
+nav{display:grid;gap:2px}
+nav button{
+ border:0;background:transparent;text-align:left;height:36px;padding:0 14px;border-radius:0 18px 18px 0;
+ color:#3c4043;cursor:pointer
+}
+nav button:hover{background:#f1f3f4}
+nav button.active{background:#e8f0fe;color:#0b57d0;font-weight:600}
+.storage{
+ margin:22px 14px 0;padding-top:15px;border-top:1px solid #e0e0e0;color:#5f6368
+}
+.storageTitle{margin-bottom:9px;color:#3c4043}
+.progress{height:5px;background:#e0e0e0;border-radius:5px;overflow:hidden}
+.progress i{display:block;height:100%;background:#1a73e8;width:9%}
+.storage small{display:block;margin-top:8px;line-height:1.45}
+main{padding:16px 24px 30px;overflow:hidden}
+.topline{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+h1{font-size:22px;font-weight:400;margin:0;flex:1}
+.actions{display:flex;align-items:center;gap:3px}
+.btn{
+ height:38px;padding:0 12px;border:0;background:transparent;border-radius:7px;color:#5f6368;cursor:pointer
+}
+.btn:hover{background:#f1f3f4}
+.count{color:#5f6368;font-size:13px;margin-right:6px}
+.crumb{display:flex;align-items:center;gap:2px;color:#5f6368;font-size:14px;margin:4px 0 14px;min-height:28px}
+.crumb span.click{cursor:pointer;color:#3c4043;padding:5px 7px;border-radius:5px}
+.crumb span.click:hover{background:#f1f3f4}
+.drop{
+ border:1px dashed #c5d7f5;background:#f8fbff;border-radius:12px;padding:12px 16px;
+ color:#5f6368;margin:0 0 14px;text-align:left
+}
+.drop b{color:#3c4043;margin-right:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.card{
+ background:#fff;border:1px solid #dadce0;border-radius:10px;min-height:145px;padding:14px;
+ cursor:pointer;display:flex;flex-direction:column;box-shadow:none;transition:.12s
+}
+.card:hover{background:#f8fafd;border-color:#c7c9cc;box-shadow:0 1px 2px rgba(60,64,67,.18)}
+.card.selected{background:#e8f0fe;border-color:#aecbfa}
+.icon{font-size:34px;margin:4px 0 17px 1px}
+.name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#202124}
+.meta{font-size:12px;color:#5f6368;margin-top:8px}
+.empty{
+ padding:90px 20px;text-align:center;color:#5f6368;background:transparent;border:0
+}
+.modal{position:fixed;inset:0;background:rgba(32,33,36,.62);display:none;z-index:50}
+.modal.open{display:flex}
+.viewer{
+ margin:auto;background:#fff;width:min(1200px,95vw);height:min(92vh,920px);
+ overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3)
+}
+.viewerBar{height:56px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:5px;padding:0 10px}
+.viewerTitle{font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.viewerBody{flex:1;background:#f1f3f4;overflow:auto}
+.viewerBody iframe{width:100%;height:100%;border:0;background:#fff}
+.viewerBody img{display:block;max-width:96%;max-height:96%;margin:2% auto;object-fit:contain}
+.textPreview{
+ white-space:pre-wrap;word-break:break-word;background:#fff;margin:24px auto;padding:32px;
+ max-width:900px;min-height:80%;font-family:Consolas,monospace;line-height:1.55
+}
+.toast{position:fixed;left:24px;bottom:24px;background:#202124;color:#fff;padding:12px 16px;border-radius:5px;display:none;z-index:90;box-shadow:var(--shadow)}
+.toast.show{display:block}
+.ctx{
+ position:fixed;display:none;background:#fff;border-radius:4px;box-shadow:0 4px 12px rgba(60,64,67,.25);
+ z-index:80;padding:7px 0;min-width:190px
+}
+.ctx button{display:block;border:0;background:#fff;width:100%;text-align:left;padding:9px 18px;cursor:pointer;color:#202124}
+.ctx button:hover{background:#f1f3f4}
+@media(max-width:800px){
+ .logo{width:55px}.logo span{display:none}.app{grid-template-columns:200px 1fr}
+ main{padding:16px}.grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+}
 </style>
 </head>
 <body>
 <header>
   <div class="logo"><div class="logoMark">△</div><span>Drive</span></div>
-  <div class="search"><input id="search" placeholder="Tìm trong Drive"></div>
+  <div class="search"><span>⌕</span><input id="search" placeholder="Tìm trong Drive"></div>
+  <div class="headerBtns">
+    <button class="iconBtn" title="Trợ giúp">?</button>
+    <button class="iconBtn" title="Cài đặt">⚙</button>
+    <button class="iconBtn" title="Ứng dụng">▦</button>
+  </div>
 </header>
 
 <div class="app">
-<aside>
-  <button class="new" id="uploadBtn"><span class="plus">＋</span>Tải tệp lên</button>
+  <aside>
+  <button class="new" id="uploadBtn"><span class="plus">＋</span> Tải tệp lên</button>
   <input id="fileInput" type="file" multiple hidden>
   <nav>
     <button class="active" data-view="all">🗂️ Tất cả tệp</button>
@@ -41,36 +136,51 @@ main{padding:16px 24px 30px;overflow:hidden}.topline{display:flex;align-items:ce
     <button data-view="text">📄 Văn bản</button>
   </nav>
   <div class="storage">
-    <div class="storageTitle">☁️ Bộ nhớ chung</div>
-    <div class="progress"><i id="storageProgress"></i></div>
-    <small id="storageText">Đang tính...</small>
+    <div class="storageTitle">💾 Bộ nhớ</div>
+    <div class="progress"><i></i></div>
+    <small>Dữ liệu được lưu cục bộ trên thiết bị.</small>
+    <button class="btn" id="clearBtn" style="padding-left:0;margin-top:7px">Xóa dữ liệu</button>
   </div>
 </aside>
 
-<main>
-  <div class="topline"><h1 id="title">Tất cả tệp</h1><div class="actions"><span class="count" id="count"></span></div></div>
-  <div class="drop" id="drop"><b>Kéo & thả file vào đây</b> hoặc bấm “Tải tệp lên”. File được lưu trên kho chung.</div>
-  <div id="progressList" class="progressList"></div>
-  <section id="content"></section>
-</main>
+  <main>
+    <div class="topline">
+      <h1 id="title">Tất cả tệp</h1>
+      <div class="actions"><span class="count" id="count"></span><button class="btn" id="folderBtn">＋ Thư mục</button></div>
+    </div>
+    <div class="drop" id="drop"><b>Kéo & thả file vào đây</b> hoặc bấm “Tải tệp lên”. File được lưu cục bộ.</div>
+    <div class="crumb" id="crumb"></div>
+    <section id="content"></section>
+  </main>
 </div>
 
 <div class="modal" id="modal">
   <div class="viewer">
-    <div class="viewerBar"><div class="viewerTitle" id="viewerTitle"></div><button class="btn" id="downloadBtn">Tải xuống</button><button class="btn" id="closeBtn">Đóng</button></div>
+    <div class="viewerBar">
+      <div class="viewerTitle" id="viewerTitle"></div>
+      <button class="btn" id="downloadBtn">Tải xuống</button>
+      <button class="btn" id="closeBtn">Đóng</button>
+    </div>
     <div class="viewerBody" id="viewerBody"></div>
   </div>
 </div>
 
-<div class="ctx" id="ctx"><button id="ctxOpen">Mở</button><button id="ctxDownload">Tải xuống</button><button id="ctxDelete">Xóa</button></div>
+<div class="ctx" id="ctx">
+  <button id="ctxOpen">Mở</button>
+  <button id="ctxDownload">Tải xuống</button>
+  <button id="ctxDelete">Xóa</button>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import {initializeApp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import {getStorage,ref as sRef,uploadBytesResumable,getDownloadURL,deleteObject} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
-import {getDatabase,ref as dRef,push,set,onValue,remove} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {
+  getStorage, ref, uploadBytesResumable, getDownloadURL,
+  listAll, getMetadata, deleteObject
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
 
-const firebaseConfig={
+const firebaseConfig = {
   apiKey:"AIzaSyCDQsJ_NrGK5ouRLS7vFr55OBZQ0nKhHSk",
   authDomain:"vietnam-life-game.firebaseapp.com",
   databaseURL:"https://vietnam-life-game-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -81,117 +191,267 @@ const firebaseConfig={
   measurementId:"G-39VPPE1F9T"
 };
 
-const app=initializeApp(firebaseConfig),storage=getStorage(app),db=getDatabase(app);
-const filesRef=dRef(db,"files");
-let allFiles=[],currentView="all",currentFile=null,previewUrl=null,ctxId=null;
+const app=initializeApp(firebaseConfig);
+const storage=getStorage(app);
+const ROOT="drive_storage";
+
+let allFiles=[];
+let currentView="all";
+let currentFile=null;
+
 const $=id=>document.getElementById(id);
 
-function toast(msg,error=false){$("toast").textContent=msg;$("toast").className="toast show"+(error?" error":"");clearTimeout(toast.t);toast.t=setTimeout(()=>$("toast").className="toast",3000)}
-function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random()}
-function fmt(n){if(!n)return"0 B";const u=["B","KB","MB","GB","TB"],i=Math.min(u.length-1,Math.floor(Math.log(n)/Math.log(1024)));return(n/Math.pow(1024,i)).toFixed(i?2:0)+" "+u[i]}
-function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-function iconFor(x){const t=x.type||"";if(t.startsWith("image/"))return"🖼️";if(t.startsWith("video/"))return"🎬";if(t.startsWith("audio/"))return"🎵";if(t==="application/pdf")return"📕";if(/zip|rar|7z/.test(t))return"🗜️";if(t.startsWith("text/"))return"📄";return"📦"}
+function toast(msg,error=false){
+  const x=$("toast");
+  x.textContent=msg;
+  x.className="toast show"+(error?" error":"");
+  clearTimeout(toast.t);
+  toast.t=setTimeout(()=>x.className="toast",3000);
+}
+function esc(s){
+  return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+function fmtSize(n){
+  n=Number(n)||0;
+  if(n<1024)return n+" B";
+  const u=["KB","MB","GB","TB"];let i=-1;
+  do{n/=1024;i++}while(n>=1024&&i<u.length-1);
+  return n.toFixed(n>=100?0:1)+" "+u[i];
+}
+function iconFor(type,name){
+  const t=type||"";
+  const ext=(name||"").split(".").pop().toLowerCase();
+  if(t.startsWith("image/"))return"🖼️";
+  if(t.startsWith("video/"))return"🎬";
+  if(t.startsWith("audio/"))return"🎵";
+  if(t==="application/pdf"||ext==="pdf")return"📕";
+  if(["zip","rar","7z"].includes(ext))return"🗜️";
+  if(t.startsWith("text/")||["txt","json","js","html","css"].includes(ext))return"📄";
+  return"📦";
+}
+
+async function loadFiles(){
+  try{
+    $("content").innerHTML='<div class="empty">☁️ Đang tải kho chung...</div>';
+    const result=await listAll(ref(storage,ROOT));
+    const files=await Promise.all(result.items.map(async item=>{
+      const [url,meta]=await Promise.all([getDownloadURL(item),getMetadata(item)]);
+      return {
+        name:meta.name,
+        size:Number(meta.size||0),
+        type:meta.contentType||"application/octet-stream",
+        url,
+        path:item.fullPath,
+        created:new Date(meta.timeCreated||0).getTime()
+      };
+    }));
+    allFiles=files.sort((a,b)=>b.created-a.created);
+    render();
+  }catch(e){
+    console.error(e);
+    $("content").innerHTML=`<div class="empty">❌ Không thể đọc kho chung.<br><br><b>${esc(e.code||e.message)}</b><br><br>Hãy kiểm tra Firebase Storage đã bật và Rules cho phép đọc.</div>`;
+    toast("Firebase Storage lỗi: "+(e.code||e.message),true);
+  }
+}
 
 function render(){
   const q=$("search").value.trim().toLowerCase();
-  let list=allFiles.filter(x=>(x.name||"").toLowerCase().includes(q));
-  if(currentView==="pdf")list=list.filter(x=>x.type==="application/pdf");
-  if(currentView==="image")list=list.filter(x=>(x.type||"").startsWith("image/"));
-  if(currentView==="text")list=list.filter(x=>(x.type||"").startsWith("text/"));
-  list.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-  $("count").textContent=`${list.length} mục`;
+  let list=allFiles.filter(f=>f.name.toLowerCase().includes(q));
+  if(currentView==="pdf")list=list.filter(f=>f.type==="application/pdf");
+  if(currentView==="image")list=list.filter(f=>f.type.startsWith("image/"));
+  if(currentView==="text")list=list.filter(f=>f.type.startsWith("text/"));
+  list.sort((a,b)=>b.created-a.created);
+
+  $("count").textContent=list.length+" mục";
   $("title").textContent={all:"Tất cả tệp",pdf:"PDF",image:"Hình ảnh",text:"Văn bản"}[currentView];
-  const total=allFiles.reduce((s,x)=>s+(Number(x.size)||0),0);
-  $("storageText").textContent=`${fmt(total)} đang dùng • kho chung`;
+
+  const total=allFiles.reduce((s,f)=>s+f.size,0);
+  $("storageText").textContent=fmtSize(total)+" • lưu chung trên cloud";
   $("storageProgress").style.width=Math.min(100,total/(10*1024**3)*100)+"%";
-  if(!list.length){$("content").innerHTML='<div class="empty">Chưa có tệp ở đây.</div>';return}
-  const grid=document.createElement("div");grid.className="grid";
-  list.forEach(x=>{
-    const card=document.createElement("div");card.className="card";card.dataset.id=x.id;
-    const icon=document.createElement("div");icon.className="icon";
-    if((x.type||"").startsWith("image/")&&x.url){const img=document.createElement("img");img.className="thumb";img.src=x.url;img.loading="lazy";icon.appendChild(img)}else icon.textContent=iconFor(x);
-    const name=document.createElement("div");name.className="name";name.title=x.name;name.textContent=x.name;
-    const meta=document.createElement("div");meta.className="meta";meta.textContent=`${fmt(x.size)} · ${x.createdAt?new Date(x.createdAt).toLocaleDateString("vi-VN"):""}`;
-    card.append(icon,name,meta);
-    card.addEventListener("dblclick",()=>activate(x.id));
-    card.addEventListener("contextmenu",e=>{e.preventDefault();showCtx(e.clientX,e.clientY,x.id)});
+
+  if(!list.length){
+    $("content").innerHTML='<div class="empty">Chưa có tệp.</div>';
+    return;
+  }
+
+  const grid=document.createElement("div");
+  grid.className="grid";
+
+  list.forEach(f=>{
+    const card=document.createElement("div");
+    card.className="card";
+    card.dataset.path=f.path;
+
+    const ic=document.createElement("div");
+    ic.className="icon";
+
+    if(f.type.startsWith("image/")){
+      const img=document.createElement("img");
+      img.className="thumb";
+      img.src=f.url;
+      img.loading="lazy";
+      ic.appendChild(img);
+    }else{
+      ic.textContent=iconFor(f.type,f.name);
+    }
+
+    const name=document.createElement("div");
+    name.className="name";
+    name.title=f.name;
+    name.textContent=f.name;
+
+    const meta=document.createElement("div");
+    meta.className="meta";
+    meta.textContent=fmtSize(f.size)+" · "+new Date(f.created).toLocaleDateString("vi-VN");
+
+    const actions=document.createElement("div");
+    actions.className="actions";
+
+    const view=document.createElement("button");
+    view.className="smallBtn";
+    view.textContent="Xem";
+    view.onclick=e=>{e.stopPropagation();openViewer(f)};
+
+    const dl=document.createElement("a");
+    dl.className="smallBtn blueBtn";
+    dl.textContent="Tải";
+    dl.href=f.url;
+    dl.target="_blank";
+    dl.download=f.name;
+    dl.onclick=e=>e.stopPropagation();
+
+    const del=document.createElement("button");
+    del.className="smallBtn redBtn";
+    del.textContent="Xóa";
+    del.onclick=e=>{e.stopPropagation();deleteFile(f)};
+
+    actions.append(view,dl,del);
+    card.append(ic,name,meta,actions);
+    card.ondblclick=()=>openViewer(f);
     grid.appendChild(card);
   });
-  $("content").innerHTML="";$("content").appendChild(grid);
+
+  $("content").innerHTML="";
+  $("content").appendChild(grid);
 }
 
-async function uploadFile(file){
-  const item=document.createElement("div");item.className="uploadItem";
-  item.innerHTML=`<div class="uploadTop"><div class="uploadName">${esc(file.name)}</div><span>0%</span></div><div class="uploadBar"><i></i></div><div class="uploadState">Đang tải...</div>`;
-  $("progressList").prepend(item);
-  const pct=item.querySelector(".uploadTop span"),bar=item.querySelector(".uploadBar i"),state=item.querySelector(".uploadState");
-  toast(`🚀 Đang tải "${file.name}" lên kho chung...`);
+function uploadFile(file){
+  const row=document.createElement("div");
+  row.className="uploadItem";
+  row.innerHTML=`<div class="uploadTop"><div class="uploadName">${esc(file.name)}</div><span>0%</span></div><div class="uploadBar"><i></i></div><div class="uploadState">Đang upload...</div>`;
+  const box=$("progressList");
+  box.style.display="grid";
+  box.prepend(row);
 
-  // Upload trực tiếp dạng resumable. Không convert toàn bộ file sang base64.
+  const pct=row.querySelector(".uploadTop span");
+  const bar=row.querySelector(".uploadBar i");
+  const state=row.querySelector(".uploadState");
+
   const clean=file.name.replace(/[^\w.\-() ]/g,"_").slice(0,180);
-  const path=`uploads/${new Date().toISOString().slice(0,10)}/${uid()}_${clean}`;
-  const task=uploadBytesResumable(sRef(storage,path),file,{contentType:file.type||"application/octet-stream",cacheControl:"public,max-age=31536000,immutable"});
-
-  task.on("state_changed",snap=>{
-    const p=snap.totalBytes?Math.round(snap.bytesTransferred/snap.totalBytes*100):0;
-    pct.textContent=p+"%";bar.style.width=p+"%";state.textContent=p<100?"Đang tải lên...":"Đang lưu danh sách...";
-  },err=>{
-    console.error(err);state.textContent="❌ "+(err.code||err.message);bar.style.background="#d93025";toast("Upload thất bại: "+(err.code||err.message),true);
-  },async()=>{
-    try{
-      const url=await getDownloadURL(task.snapshot.ref);
-      const record=push(filesRef);
-      await set(record,{name:file.name,size:file.size,type:file.type||"application/octet-stream",url,storagePath:path,createdAt:Date.now()});
-      pct.textContent="100%";bar.style.width="100%";state.textContent="✅ Đã lưu chung";
-      toast(`✅ ${file.name} đã lưu — mọi người đều thấy`);
-      setTimeout(()=>{item.remove();if(!$("progressList").children.length)$("progressList").style.display="none"},1800);
-    }catch(err){
-      console.error(err);state.textContent="❌ "+(err.code||err.message);bar.style.background="#d93025";toast("Đã upload nhưng không lưu danh sách: "+(err.code||err.message),true);
+  const path=`${ROOT}/${Date.now()}_${crypto.randomUUID()}_${clean}`;
+  const task=uploadBytesResumable(
+    ref(storage,path),
+    file,
+    {
+      contentType:file.type||"application/octet-stream",
+      cacheControl:"public,max-age=31536000,immutable"
     }
-  });
+  );
+
+  task.on("state_changed",
+    snap=>{
+      const p=snap.totalBytes?Math.floor(snap.bytesTransferred/snap.totalBytes*100):0;
+      pct.textContent=p+"%";
+      bar.style.width=p+"%";
+      state.textContent=p<100?"Đang tải trực tiếp...":"Đang hoàn tất...";
+    },
+    err=>{
+      console.error(err);
+      state.textContent="❌ "+(err.code||err.message);
+      bar.style.background="#d93025";
+      toast("Không tải lên được: "+(err.code||err.message),true);
+    },
+    async()=>{
+      try{
+        await getDownloadURL(task.snapshot.ref);
+        state.textContent="✅ Đã lưu vĩnh viễn";
+        pct.textContent="100%";
+        bar.style.width="100%";
+        toast("✅ Đã lưu "+file.name+" — mọi người đều thấy");
+        await loadFiles();
+        setTimeout(()=>row.remove(),1500);
+      }catch(e){
+        console.error(e);
+        state.textContent="❌ "+(e.code||e.message);
+        toast("Upload xong nhưng không đọc được file: "+(e.code||e.message),true);
+      }
+    }
+  );
 }
 
-async function activate(id){const x=allFiles.find(f=>f.id===id);if(x)openViewer(x)}
-function openViewer(x){
-  currentFile=x;$("viewerTitle").textContent=x.name;$("viewerBody").innerHTML="";
-  if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}
-  const t=x.type||"",u=x.url;
-  if(t==="application/pdf")$("viewerBody").innerHTML=`<iframe src="${u}"></iframe>`;
-  else if(t.startsWith("image/"))$("viewerBody").innerHTML=`<img src="${u}" alt="">`;
-  else if(t.startsWith("video/"))$("viewerBody").innerHTML=`<video src="${u}" controls autoplay style="max-width:100%;max-height:100%"></video>`;
-  else if(t.startsWith("text/"))fetch(u).then(r=>r.text()).then(text=>{$("viewerBody").innerHTML='<pre class="textPreview"></pre>';$("viewerBody").firstChild.textContent=text}).catch(()=>{$("viewerBody").innerHTML="<div class='empty'>Không thể xem trực tiếp file này.</div>"});
-  else $("viewerBody").innerHTML=`<div class="empty">Không có trình xem cho định dạng này.<br><br><a href="${u}" target="_blank">Mở / tải file</a></div>`;
+async function deleteFile(file){
+  if(!confirm("Xóa "+file.name+" khỏi kho chung?"))return;
+  try{
+    await deleteObject(ref(storage,file.path));
+    toast("🗑️ Đã xóa khỏi kho chung");
+    await loadFiles();
+  }catch(e){
+    console.error(e);
+    toast("Không thể xóa: "+(e.code||e.message),true);
+  }
+}
+
+function openViewer(f){
+  currentFile=f;
+  $("viewerTitle").textContent=f.name;
+  $("viewerBody").innerHTML="";
+  const t=f.type||"";
+  if(t.startsWith("image/")){
+    $("viewerBody").innerHTML=`<img src="${f.url}" alt="">`;
+  }else if(t.startsWith("video/")){
+    $("viewerBody").innerHTML=`<video src="${f.url}" controls autoplay style="max-width:100%;max-height:100%"></video>`;
+  }else if(t==="application/pdf"){
+    $("viewerBody").innerHTML=`<iframe src="${f.url}"></iframe>`;
+  }else if(t.startsWith("audio/")){
+    $("viewerBody").innerHTML=`<audio src="${f.url}" controls autoplay style="width:min(700px,90%)"></audio>`;
+  }else{
+    $("viewerBody").innerHTML=`<div class="empty">Không có trình xem trực tiếp cho file này.<br><br><a href="${f.url}" target="_blank">Mở / tải file</a></div>`;
+  }
   $("modal").classList.add("open");
 }
-async function deleteFile(x){
-  if(!confirm(`Xóa "${x.name}" khỏi kho chung?`))return;
-  try{if(x.storagePath)await deleteObject(sRef(storage,x.storagePath));await remove(dRef(db,"files/"+x.id));toast("🗑️ Đã xóa khỏi kho chung")}catch(e){console.error(e);toast("Không thể xóa: "+(e.code||e.message),true)}
-}
-function showCtx(x,y,id){ctxId=id;$("ctx").style.left=x+"px";$("ctx").style.top=y+"px";$("ctx").style.display="block"}
-document.addEventListener("click",e=>{if(!e.target.closest(".ctx"))$("ctx").style.display="none"});
 
 $("uploadBtn").onclick=()=>$("fileInput").click();
-$("fileInput").onchange=e=>{[...e.target.files].forEach(uploadFile);e.target.value=""};
+$("fileInput").onchange=e=>{
+  [...e.target.files].forEach(uploadFile);
+  e.target.value="";
+};
 $("search").oninput=render;
 $("drop").ondragover=e=>{e.preventDefault();$("drop").style.background="#e8f0fe"};
 $("drop").ondragleave=()=>$("drop").style.background="";
-$("drop").ondrop=e=>{e.preventDefault();$("drop").style.background="";[...e.dataTransfer.files].forEach(uploadFile)};
+$("drop").ondrop=e=>{
+  e.preventDefault();
+  $("drop").style.background="";
+  [...e.dataTransfer.files].forEach(uploadFile);
+};
 $("closeBtn").onclick=()=>{$("modal").classList.remove("open");$("viewerBody").innerHTML=""};
 $("modal").onclick=e=>{if(e.target===$("modal"))$("closeBtn").click()};
-$("downloadBtn").onclick=()=>{if(currentFile){const a=document.createElement("a");a.href=currentFile.url;a.target="_blank";a.download=currentFile.name;a.click()}};
-$("ctxOpen").onclick=()=>{const x=allFiles.find(f=>f.id===ctxId);$("ctx").style.display="none";if(x)openViewer(x)};
-$("ctxDownload").onclick=()=>{const x=allFiles.find(f=>f.id===ctxId);$("ctx").style.display="none";if(x){const a=document.createElement("a");a.href=x.url;a.target="_blank";a.download=x.name;a.click()}};
-$("ctxDelete").onclick=()=>{const x=allFiles.find(f=>f.id===ctxId);$("ctx").style.display="none";if(x)deleteFile(x)};
-document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{currentView=b.dataset.view;document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");render()});
-
-// Đây là điểm quyết định: danh sách lấy từ Firebase, nên tất cả người dùng nhìn thấy cùng một kho.
-onValue(filesRef,snap=>{
-  const data=snap.val()||{};
-  allFiles=Object.entries(data).map(([id,v])=>({id,...v}));
+$("downloadBtn").onclick=()=>{
+  if(currentFile){
+    const a=document.createElement("a");
+    a.href=currentFile.url;
+    a.target="_blank";
+    a.download=currentFile.name;
+    a.click();
+  }
+};
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+  currentView=b.dataset.view;
+  document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
   render();
-},err=>{console.error(err);toast("Không đọc được kho chung: "+(err.code||err.message),true);$("content").innerHTML='<div class="empty">Không thể đọc dữ liệu Firebase.<br>Kiểm tra Realtime Database Rules.</div>'});
+});
 
-render();
+loadFiles();
 </script>
 </body>
 </html>
