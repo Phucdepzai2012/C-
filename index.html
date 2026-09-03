@@ -249,7 +249,8 @@ async function loadFiles(){
         created:new Date(meta.timeCreated||0).getTime()
       };
     }));
-    allFiles=files.sort((a,b)=>b.created-a.created);
+    const pending=[...pendingFiles.values()];
+    allFiles=[...pending,...files].sort((a,b)=>b.created-a.created);
     render();
   }catch(e){
     console.error(e);
@@ -340,6 +341,14 @@ function render(){
 }
 
 function uploadFile(file){
+  // Hiện file ngay lập tức trên máy của người upload; upload thật chạy nền.
+  const localId="pending_"+crypto.randomUUID();
+  const localUrl=URL.createObjectURL(file);
+  const optimistic={id:localId,name:file.name,size:file.size,type:file.type||"application/octet-stream",url:localUrl,path:null,created:Date.now(),pending:true};
+  pendingFiles.set(localId,optimistic);
+  allFiles.unshift(optimistic);
+  render();
+
   const row=document.createElement("div");
   row.className="uploadItem";
   row.innerHTML=`<div class="uploadTop"><div class="uploadName">${esc(file.name)}</div><span>0%</span></div><div class="uploadBar"><i></i></div><div class="uploadState">Đang upload...</div>`;
@@ -352,7 +361,7 @@ function uploadFile(file){
   const state=row.querySelector(".uploadState");
 
   const clean=file.name.replace(/[^\w.\-() ]/g,"_").slice(0,180);
-  const path=`${ROOT}/${Date.now()}_${crypto.randomUUID()}_${clean}`;
+  const path=`${ROOT}/${crypto.randomUUID()}_${clean}`;
   const task=uploadBytesResumable(
     ref(storage,path),
     file,
@@ -371,18 +380,29 @@ function uploadFile(file){
     },
     err=>{
       console.error(err);
+      const idx=allFiles.findIndex(x=>x.id===localId);
+      if(idx>=0) allFiles.splice(idx,1);
+      pendingFiles.delete(localId);
+      URL.revokeObjectURL(localUrl);
+      render();
       state.textContent="❌ "+(err.code||err.message);
       bar.style.background="#d93025";
       toast("Không tải lên được: "+(err.code||err.message)+" — kiểm tra Storage Rules",true);
     },
     async()=>{
       try{
-        await getDownloadURL(task.snapshot.ref);
+        const url=await getDownloadURL(task.snapshot.ref);
+        const idx=allFiles.findIndex(x=>x.id===localId);
+        if(idx>=0){
+          allFiles[idx]={id:localId,name:file.name,size:file.size,type:file.type||"application/octet-stream",url,path,created:Date.now(),pending:false};
+        }
+        pendingFiles.delete(localId);
+        URL.revokeObjectURL(localUrl);
+        render();
         state.textContent="✅ Đã lưu vĩnh viễn";
         pct.textContent="100%";
         bar.style.width="100%";
         toast("✅ Đã lưu "+file.name+" — mọi người đều thấy");
-        await loadFiles();
         setTimeout(()=>row.remove(),1500);
       }catch(e){
         console.error(e);
