@@ -195,6 +195,10 @@ const app=initializeApp(firebaseConfig);
 const storage=getStorage(app);
 const ROOT="drive_storage";
 
+// Firebase Storage must permit public read/write for this public Drive.
+// The app cannot override Security Rules from browser JavaScript.
+
+
 let allFiles=[];
 let currentView="all";
 let currentFile=null;
@@ -250,7 +254,7 @@ async function loadFiles(){
   }catch(e){
     console.error(e);
     $("content").innerHTML=`<div class="empty">❌ Không thể đọc kho chung.<br><br><b>${esc(e.code||e.message)}</b><br><br>Hãy kiểm tra Firebase Storage đã bật và Rules cho phép đọc.</div>`;
-    toast("Firebase Storage lỗi: "+(e.code||e.message),true);
+    toast("Firebase Storage lỗi: "+(e.code||e.message)+" — hãy kiểm tra Storage Rules",true);
   }
 }
 
@@ -369,7 +373,7 @@ function uploadFile(file){
       console.error(err);
       state.textContent="❌ "+(err.code||err.message);
       bar.style.background="#d93025";
-      toast("Không tải lên được: "+(err.code||err.message),true);
+      toast("Không tải lên được: "+(err.code||err.message)+" — kiểm tra Storage Rules",true);
     },
     async()=>{
       try{
