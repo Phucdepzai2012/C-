@@ -1,481 +1,166 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Drive — HTML Drive</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<title>RoomDrive</title>
 <style>
-:root{
-  --blue:#1a73e8;--blue2:#0b57d0;--bg:#f8fafd;--surface:#fff;
-  --text:#202124;--muted:#5f6368;--line:#dadce0;--hover:#f1f3f4;
-  --selected:#e8f0fe;--shadow:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15)
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
-button,input{font:inherit}
-header{
-  height:64px;background:var(--surface);border-bottom:1px solid var(--line);
-  display:flex;align-items:center;gap:10px;padding:0 18px;position:sticky;top:0;z-index:20
-}
-.logo{display:flex;align-items:center;gap:10px;width:230px;color:#5f6368;font-size:22px;white-space:nowrap}
-.logoMark{width:34px;height:34px;border-radius:6px;background:#1a73e8;color:white;display:grid;place-items:center;font-size:19px;font-weight:700}
-.search{flex:1;max-width:720px;position:relative}
-.search input{
- width:100%;height:48px;border:0;background:#e9eef6;border-radius:24px;
- padding:0 20px 0 48px;font-size:16px;outline:none;color:#202124
-}
-.search input:focus{background:#fff;box-shadow:inset 0 0 0 1px #dadce0,0 1px 3px rgba(60,64,67,.25)}
-.search span{position:absolute;left:18px;top:13px;color:#5f6368;font-size:22px}
-.headerBtns{margin-left:auto;display:flex;align-items:center;gap:4px}
-.iconBtn{
- width:42px;height:42px;border:0;border-radius:50%;background:transparent;cursor:pointer;
- color:#5f6368;font-size:20px
-}
-.iconBtn:hover{background:var(--hover)}
-.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:calc(100vh - 64px)}
-aside{background:#fff;padding:14px 10px;border-right:1px solid #eee}
-.new{
- display:flex;align-items:center;gap:10px;height:52px;padding:0 20px;border:1px solid #dadce0;
- border-radius:16px;background:#fff;box-shadow:0 1px 2px rgba(60,64,67,.2);cursor:pointer;
- font-weight:500;font-size:15px;color:#202124;margin:2px 0 13px 4px
-}
-.new:hover{box-shadow:0 2px 5px rgba(60,64,67,.25)}
-.plus{font-size:26px;color:#1a73e8;font-weight:300}
-nav{display:grid;gap:2px}
-nav button{
- border:0;background:transparent;text-align:left;height:36px;padding:0 14px;border-radius:0 18px 18px 0;
- color:#3c4043;cursor:pointer
-}
-nav button:hover{background:#f1f3f4}
-nav button.active{background:#e8f0fe;color:#0b57d0;font-weight:600}
-.storage{
- margin:22px 14px 0;padding-top:15px;border-top:1px solid #e0e0e0;color:#5f6368
-}
-.storageTitle{margin-bottom:9px;color:#3c4043}
-.progress{height:5px;background:#e0e0e0;border-radius:5px;overflow:hidden}
-.progress i{display:block;height:100%;background:#1a73e8;width:9%}
-.storage small{display:block;margin-top:8px;line-height:1.45}
-main{padding:16px 24px 30px;overflow:hidden}
-.topline{display:flex;align-items:center;gap:12px;margin-bottom:6px}
-h1{font-size:22px;font-weight:400;margin:0;flex:1}
-.actions{display:flex;align-items:center;gap:3px}
-.btn{
- height:38px;padding:0 12px;border:0;background:transparent;border-radius:7px;color:#5f6368;cursor:pointer
-}
-.btn:hover{background:#f1f3f4}
-.count{color:#5f6368;font-size:13px;margin-right:6px}
-.crumb{display:flex;align-items:center;gap:2px;color:#5f6368;font-size:14px;margin:4px 0 14px;min-height:28px}
-.crumb span.click{cursor:pointer;color:#3c4043;padding:5px 7px;border-radius:5px}
-.crumb span.click:hover{background:#f1f3f4}
-.drop{
- border:1px dashed #c5d7f5;background:#f8fbff;border-radius:12px;padding:12px 16px;
- color:#5f6368;margin:0 0 14px;text-align:left
-}
-.drop b{color:#3c4043;margin-right:6px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
-.card{
- background:#fff;border:1px solid #dadce0;border-radius:10px;min-height:145px;padding:14px;
- cursor:pointer;display:flex;flex-direction:column;box-shadow:none;transition:.12s
-}
-.card:hover{background:#f8fafd;border-color:#c7c9cc;box-shadow:0 1px 2px rgba(60,64,67,.18)}
-.card.selected{background:#e8f0fe;border-color:#aecbfa}
-.icon{font-size:34px;margin:4px 0 17px 1px}
-.name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#202124}
-.meta{font-size:12px;color:#5f6368;margin-top:8px}
-.empty{
- padding:90px 20px;text-align:center;color:#5f6368;background:transparent;border:0
-}
-.modal{position:fixed;inset:0;background:rgba(32,33,36,.62);display:none;z-index:50}
-.modal.open{display:flex}
-.viewer{
- margin:auto;background:#fff;width:min(1200px,95vw);height:min(92vh,920px);
- overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3)
-}
-.viewerBar{height:56px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:5px;padding:0 10px}
-.viewerTitle{font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.viewerBody{flex:1;background:#f1f3f4;overflow:auto}
-.viewerBody iframe{width:100%;height:100%;border:0;background:#fff}
-.viewerBody img{display:block;max-width:96%;max-height:96%;margin:2% auto;object-fit:contain}
-.textPreview{
- white-space:pre-wrap;word-break:break-word;background:#fff;margin:24px auto;padding:32px;
- max-width:900px;min-height:80%;font-family:Consolas,monospace;line-height:1.55
-}
-.toast{position:fixed;left:24px;bottom:24px;background:#202124;color:#fff;padding:12px 16px;border-radius:5px;display:none;z-index:90;box-shadow:var(--shadow)}
-.toast.show{display:block}
-.ctx{
- position:fixed;display:none;background:#fff;border-radius:4px;box-shadow:0 4px 12px rgba(60,64,67,.25);
- z-index:80;padding:7px 0;min-width:190px
-}
-.ctx button{display:block;border:0;background:#fff;width:100%;text-align:left;padding:9px 18px;cursor:pointer;color:#202124}
-.ctx button:hover{background:#f1f3f4}
-@media(max-width:800px){
- .logo{width:55px}.logo span{display:none}.app{grid-template-columns:200px 1fr}
- main{padding:16px}.grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
-}
+:root{--bg:#f5f7fb;--panel:#fff;--text:#172033;--muted:#6f7890;--line:#e5e9f2;--primary:#1967ff;--primary2:#0f54db;--danger:#dc3545;--success:#1f9d55;--shadow:0 16px 45px rgba(25,43,77,.10);--radius:18px}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:linear-gradient(180deg,#f7f9fd 0%,#eef2f8 100%)}button,input{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+.app{min-height:100vh}.topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.90);backdrop-filter:blur(16px);border-bottom:1px solid rgba(229,233,242,.9);height:72px;display:flex;align-items:center;padding:0 22px;gap:16px}.brand{display:flex;align-items:center;gap:11px;min-width:190px}.logo{width:39px;height:39px;border-radius:11px;background:linear-gradient(135deg,#2677ff,#5b4dff);display:grid;place-items:center;color:#fff;font-size:20px;font-weight:800;box-shadow:0 8px 20px rgba(38,119,255,.25)}.brand h1{margin:0;font-size:20px;letter-spacing:-.02em}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:1px}.search{flex:1;max-width:630px;position:relative}.search input{width:100%;height:43px;border:1px solid var(--line);border-radius:13px;background:#f7f9fc;padding:0 15px 0 43px;outline:none;transition:.2s}.search input:focus{background:#fff;border-color:#9cbbff;box-shadow:0 0 0 4px rgba(25,103,255,.08)}.search span{position:absolute;left:15px;top:10px;color:#8a94a9}.top-actions{margin-left:auto;display:flex;align-items:center;gap:9px}.btn{border:0;border-radius:12px;padding:10px 14px;font-weight:700;transition:.18s;display:inline-flex;align-items:center;justify-content:center;gap:8px}.btn:hover{transform:translateY(-1px)}.btn.primary{background:var(--primary);color:white;box-shadow:0 8px 20px rgba(25,103,255,.18)}.btn.primary:hover{background:var(--primary2)}.btn.ghost{background:#eef3ff;color:#155be8}.btn.outline{background:#fff;border:1px solid var(--line);color:var(--text)}.btn.danger{background:#fff2f3;color:#c62e3b}.btn.small{padding:8px 10px;border-radius:10px;font-size:13px}.avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 6px 14px rgba(0,0,0,.09);background:#dfe6f5}.layout{display:grid;grid-template-columns:250px 1fr;max-width:1500px;margin:0 auto}.sidebar{padding:22px 15px;position:sticky;top:72px;height:calc(100vh - 72px)}.side-btn{width:100%;padding:12px 13px;border-radius:12px;border:0;background:transparent;text-align:left;color:#4f5970;font-weight:700;display:flex;gap:10px;align-items:center;margin-bottom:5px}.side-btn.active,.side-btn:hover{background:#eaf1ff;color:#155be8}.side-label{font-size:11px;color:#9aa4b7;font-weight:800;padding:18px 12px 9px;text-transform:uppercase;letter-spacing:.08em}.content{padding:26px 24px 55px;min-width:0}.hero{background:linear-gradient(135deg,#121b35,#294a9c);color:white;border-radius:22px;padding:25px 26px;display:flex;align-items:center;justify-content:space-between;gap:20px;box-shadow:var(--shadow);margin-bottom:24px}.hero h2{margin:0 0 6px;font-size:28px;letter-spacing:-.035em}.hero p{margin:0;color:#dbe5ff}.hero-actions{display:flex;gap:10px;flex-wrap:wrap}.hero .btn.outline{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#fff}.section{margin-bottom:28px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}.section-title{font-size:18px;font-weight:850;letter-spacing:-.02em}.sub{color:var(--muted);font-size:13px}.rooms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}.room-card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:17px;box-shadow:0 7px 20px rgba(34,51,84,.05)}.room-top{display:flex;align-items:flex-start;gap:12px}.room-icon{width:44px;height:44px;border-radius:13px;background:#edf3ff;display:grid;place-items:center;font-size:21px}.room-card h3{margin:0 0 4px;font-size:16px}.room-card .meta{font-size:12px;color:var(--muted);line-height:1.55}.room-code{margin-top:14px;padding:10px 12px;border-radius:11px;background:#f7f9fc;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:8px}.room-actions{display:flex;gap:7px;margin-top:13px}.room-actions .btn{flex:1}.empty{background:#fff;border:1px dashed #cad3e4;border-radius:17px;padding:34px;text-align:center;color:var(--muted)}.drop{border:2px dashed #c7d2e9;background:#fbfcff;border-radius:19px;padding:31px;text-align:center;transition:.2s}.drop.drag{border-color:#4d82ff;background:#edf4ff;transform:scale(1.005)}.drop strong{font-size:17px;display:block;margin-bottom:6px}.drop p{margin:0 0 15px;color:var(--muted);font-size:13px}.file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:13px}.file-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;gap:12px;align-items:flex-start;box-shadow:0 5px 15px rgba(36,49,76,.04)}.file-icon{width:43px;height:43px;flex:0 0 auto;border-radius:12px;background:#f1f4f9;display:grid;place-items:center;font-size:20px}.file-info{min-width:0;flex:1}.file-name{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.file-meta{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.55}.file-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}.progress{margin-top:11px;height:7px;background:#eef1f7;border-radius:99px;overflow:hidden}.progress>span{height:100%;display:block;background:linear-gradient(90deg,#1967ff,#5f5aff);width:0;transition:width .1s}.upload-status{font-size:12px;margin-top:7px;color:#5f6a82}.userbox{display:flex;align-items:center;gap:10px;padding:9px;border:1px solid var(--line);border-radius:13px;background:#fff}.userbox .u-text{min-width:0;flex:1}.userbox b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.userbox span{font-size:10px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.backdrop{position:fixed;inset:0;background:rgba(10,16,31,.52);backdrop-filter:blur(6px);z-index:100;display:grid;place-items:center;padding:18px}.modal{width:min(620px,100%);background:#fff;border-radius:21px;box-shadow:0 30px 90px rgba(0,0,0,.25);padding:21px;max-height:90vh;overflow:auto}.modal h3{margin:0 0 14px;font-size:20px}.modal-head{display:flex;align-items:center;justify-content:space-between;gap:15px}.x{width:34px;height:34px;border-radius:9px;border:0;background:#f1f3f7}.field{margin-bottom:13px}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}.field input{width:100%;height:43px;border:1px solid var(--line);border-radius:11px;padding:0 12px;outline:none}.field input:focus{border-color:#92b1ff;box-shadow:0 0 0 4px rgba(25,103,255,.07)}.row{display:flex;gap:10px}.row>*{flex:1}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.toast-wrap{position:fixed;right:17px;bottom:17px;z-index:200;display:flex;flex-direction:column;gap:9px;width:min(390px,calc(100vw - 34px))}.toast{background:#10192f;color:#fff;border-radius:13px;padding:12px 14px;box-shadow:0 12px 30px rgba(0,0,0,.18);font-size:13px;line-height:1.4}.toast.good{background:#0d7a42}.toast.bad{background:#b6273a}.login{min-height:100vh;display:grid;place-items:center;padding:22px}.login-card{width:min(480px,100%);background:#fff;border:1px solid var(--line);border-radius:25px;padding:31px;box-shadow:var(--shadow);text-align:center}.login-card .logo{margin:0 auto 13px}.login-card h1{font-size:30px;margin:0 0 7px}.login-card p{margin:0 0 22px;color:var(--muted);line-height:1.55}.google-btn{width:100%;background:#fff;border:1px solid #d9dfeb;color:#202737;padding:13px;border-radius:12px;font-weight:800;box-shadow:0 7px 18px rgba(32,43,64,.05)}.google-btn:hover{background:#fbfcff}.or{display:flex;align-items:center;gap:10px;color:#a1aabd;font-size:11px;margin:17px 0}.or:before,.or:after{content:"";height:1px;background:var(--line);flex:1}.sample-note{background:#f7f9fc;border-radius:13px;padding:12px;text-align:left;font-size:12px;color:#5e687f;margin-bottom:16px}.sample-note b{color:#25304a}.room-view{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 8px 24px rgba(34,50,82,.05)}.room-view-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}.room-view-head h2{margin:0 0 4px;font-size:24px}.room-view-head p{margin:0;color:var(--muted);font-size:12px}.room-tools{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.inline{display:inline-flex;align-items:center;gap:7px}.setting-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:17px}.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px}.toggle input{width:19px;height:19px}.viewer{width:min(1000px,100%);height:min(82vh,850px);background:#101522;border-radius:18px;overflow:hidden;display:flex;flex-direction:column}.viewer-head{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;color:#fff}.viewer-body{flex:1;display:grid;place-items:center;overflow:auto;background:#1a2130}.viewer-body img{max-width:100%;max-height:100%;object-fit:contain}.viewer-body iframe{width:100%;height:100%;border:0;background:#fff}.viewer-body pre{white-space:pre-wrap;color:#ecf1fb;width:100%;padding:22px;align-self:start}.mini{font-size:11px;color:var(--muted)}.viewer video,.viewer audio{max-width:100%;max-height:100%;width:min(96%,920px)}.viewer-office{background:#fff;width:100%;height:100%;padding:30px;overflow:auto;color:#172033}.share-box{margin-top:10px;padding:10px;border:1px solid #e2e7f0;border-radius:11px;background:#f8faff}.share-url{font-family:ui-monospace,monospace;font-size:11px;word-break:break-all;color:#59647a}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:static;height:auto;padding:12px 15px;display:flex;gap:8px;overflow:auto}.side-label{display:none}.side-btn{width:auto;white-space:nowrap;margin:0}.sidebar .userbox{display:none}.brand{min-width:auto}.brand small{display:none}.search{max-width:none}.topbar{padding:0 13px}.content{padding:18px 14px 45px}.hero{padding:21px;align-items:flex-start;flex-direction:column}.hero h2{font-size:23px}.rooms-grid,.file-grid{grid-template-columns:1fr}.room-view-head{flex-direction:column}.room-tools{justify-content:flex-start}}
+@media(max-width:620px){.topbar{gap:9px;height:64px}.brand h1{font-size:17px}.logo{width:34px;height:34px;font-size:18px}.top-actions .btn{padding:9px}.top-actions .btn.primary{font-size:0;width:41px}.top-actions .btn.primary:first-letter{font-size:18px}.avatar{width:34px;height:34px}.search{display:none}.hero-actions{width:100%}.hero-actions .btn{flex:1}.row{flex-direction:column}.modal{padding:16px}.login-card{padding:25px 19px}}
 </style>
 </head>
 <body>
-<header>
-  <div class="logo"><div class="logoMark">△</div><span>Drive</span></div>
-  <div class="search"><span>⌕</span><input id="search" placeholder="Tìm trong Drive"></div>
-  <div class="headerBtns">
-    <button class="iconBtn" title="Trợ giúp">?</button>
-    <button class="iconBtn" title="Cài đặt">⚙</button>
-    <button class="iconBtn" title="Ứng dụng">▦</button>
-  </div>
-</header>
-
-<div class="app">
-  <aside>
-  <button class="new" id="uploadBtn"><span class="plus">＋</span> Tải tệp lên</button>
-  <input id="fileInput" type="file" multiple hidden>
-  <nav>
-    <button class="active" data-view="all">🗂️ Tất cả tệp</button>
-    <button data-view="pdf">📕 PDF</button>
-    <button data-view="image">🖼️ Hình ảnh</button>
-    <button data-view="text">📄 Văn bản</button>
-  </nav>
-  <div class="storage">
-    <div class="storageTitle">💾 Bộ nhớ</div>
-    <div class="progress"><i></i></div>
-    <small>Dữ liệu được lưu cục bộ trên thiết bị.</small>
-    <button class="btn" id="clearBtn" style="padding-left:0;margin-top:7px">Xóa dữ liệu</button>
-  </div>
-</aside>
-
-  <main>
-    <div class="topline">
-      <h1 id="title">Tất cả tệp</h1>
-      <div class="actions"><span class="count" id="count"></span><button class="btn" id="folderBtn">＋ Thư mục</button></div>
-    </div>
-    <div class="drop" id="drop"><b>Kéo & thả file vào đây</b> hoặc bấm “Tải tệp lên”. File được lưu cục bộ.</div>
-    <div class="crumb" id="crumb"></div>
-    <section id="content"></section>
-  </main>
-</div>
-
-<div class="modal" id="modal">
-  <div class="viewer">
-    <div class="viewerBar">
-      <div class="viewerTitle" id="viewerTitle"></div>
-      <button class="btn" id="downloadBtn">Tải xuống</button>
-      <button class="btn" id="closeBtn">Đóng</button>
-    </div>
-    <div class="viewerBody" id="viewerBody"></div>
-  </div>
-</div>
-
-<div class="ctx" id="ctx">
-  <button id="ctxOpen">Mở</button>
-  <button id="ctxDownload">Tải xuống</button>
-  <button id="ctxDelete">Xóa</button>
-</div>
-
-<div class="toast" id="toast"></div>
-
+<div id="app"></div>
+<div id="toastWrap" class="toast-wrap"></div>
+<div id="modalRoot"></div>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import {
-  getStorage, ref, uploadBytesResumable, getDownloadURL,
-  listAll, getMetadata, deleteObject
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, signInAnonymously, browserLocalPersistence, setPersistence } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import { getDatabase, ref, get, set, update, push, remove, onValue, onDisconnect, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey:"AIzaSyCDQsJ_NrGK5ouRLS7vFr55OBZQ0nKhHSk",
-  authDomain:"vietnam-life-game.firebaseapp.com",
-  databaseURL:"https://vietnam-life-game-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:"vietnam-life-game",
-  storageBucket:"vietnam-life-game.firebasestorage.app",
-  messagingSenderId:"134954120781",
-  appId:"1:134954120781:web:d7f762adb80bfce3140e04",
-  measurementId:"G-39VPPE1F9T"
+  apiKey: "AIzaSyCDQsJ_NrGK5ouRLS7vFr55OBZQ0nKhHSk",
+  authDomain: "vietnam-life-game.firebaseapp.com",
+  databaseURL: "https://vietnam-life-game-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "vietnam-life-game",
+  storageBucket: "vietnam-life-game.firebasestorage.app",
+  messagingSenderId: "134954120781",
+  appId: "1:134954120781:web:d7f762adb80bfce3140e04",
+  measurementId: "G-39VPPE1F9T"
 };
 
-const app=initializeApp(firebaseConfig);
-const storage=getStorage(app);
-const ROOT="drive_storage";
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+await setPersistence(auth, browserLocalPersistence).catch(()=>{});
 
-// Firebase Storage must permit public read/write for this public Drive.
-// The app cannot override Security Rules from browser JavaScript.
+const ROOM_SAMPLE = "PHONGMAU";
+const SAMPLE_PASSWORD = "123456";
+const SAMPLE_SALT = "roomdrive-sample-v1";
+const SAMPLE_HASH = "ea396cab4e47630645d438e40453bcd2ef6686b81ca934bbfb80f5302a6b058a";
+const CHUNK_SIZE = 64 * 1024;
+const MAX_RETRIES = 3;
+const WRITE_TIMEOUT = 18000;
+const state = { user:null, rooms:{}, joined:null, unsubRooms:null, unsubMeta:null, unsubFiles:null, query:"", busy:false };
 
-
-let allFiles=[];
-let currentView="all";
-let currentFile=null;
-
-const $=id=>document.getElementById(id);
-
-function toast(msg,error=false){
-  const x=$("toast");
-  x.textContent=msg;
-  x.className="toast show"+(error?" error":"");
-  clearTimeout(toast.t);
-  toast.t=setTimeout(()=>x.className="toast",3000);
-}
-function esc(s){
-  return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
-}
-function fmtSize(n){
-  n=Number(n)||0;
-  if(n<1024)return n+" B";
-  const u=["KB","MB","GB","TB"];let i=-1;
-  do{n/=1024;i++}while(n>=1024&&i<u.length-1);
-  return n.toFixed(n>=100?0:1)+" "+u[i];
-}
-function iconFor(type,name){
-  const t=type||"";
-  const ext=(name||"").split(".").pop().toLowerCase();
-  if(t.startsWith("image/"))return"🖼️";
-  if(t.startsWith("video/"))return"🎬";
-  if(t.startsWith("audio/"))return"🎵";
-  if(t==="application/pdf"||ext==="pdf")return"📕";
-  if(["zip","rar","7z"].includes(ext))return"🗜️";
-  if(t.startsWith("text/")||["txt","json","js","html","css"].includes(ext))return"📄";
-  return"📦";
-}
-
-async function loadFiles(){
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>'"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]));
+const fmtSize = n => { if(n<1024)return n+" B"; if(n<1024*1024)return (n/1024).toFixed(n<10240?1:0)+" KB"; if(n<1024**3)return (n/1024**1024).toFixed(1)+" MB"; return (n/1024**3).toFixed(2)+" GB"; };
+const fmtDate = n => { if(!n)return "Chưa rõ thời gian"; const d=new Date(n); return d.toLocaleString("vi-VN",{dateStyle:"medium",timeStyle:"short"}); };
+const nowish = () => Date.now();
+const randomChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function randomCode(len=8){let out="";const a=new Uint32Array(len);crypto.getRandomValues(a);for(const x of a)out+=randomChars[x%randomChars.length];return out;}
+function normalizeRoomCode(v){return String(v||"").trim().toUpperCase().replace(/[^A-Z0-9_-]/g,"");}
+async function sha256(text){const b=new TextEncoder().encode(text);const h=await crypto.subtle.digest("SHA-256",b);return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,"0")).join("");}
+async function hashPassword(password,salt=crypto.randomUUID()){return salt+"$"+(await sha256(salt+"\0"+password));}
+async function verifyPassword(password,stored){const [salt,hash]=String(stored||"").split("$");if(!salt||!hash)return false;return (await sha256(salt+"\0"+password))===hash;}
+function toast(msg,type=""){const el=document.createElement("div");el.className="toast "+type;el.textContent=msg;$('toastWrap').appendChild(el);setTimeout(()=>el.remove(),4300);}
+function iconFor(name,type=""){const n=String(name||"").toLowerCase();if(type.startsWith("image/")||/\.(png|jpe?g|gif|webp|svg)$/i.test(n))return "🖼️";if(type.includes("pdf")||/\.pdf$/i.test(n))return "📕";if(type.includes("zip")||/\.(zip|rar|7z)$/i.test(n))return "🗜️";if(type.startsWith("video/")||/\.(mp4|mov|avi|mkv|webm)$/i.test(n))return "🎬";if(type.startsWith("audio/")||/\.(mp3|wav|ogg|m4a)$/i.test(n))return "🎵";if(type.includes("text")||/\.(txt|md|json|js|html|css|csv)$/i.test(n))return "📄";if(/\.(doc|docx)$/i.test(n))return "📝";if(/\.(xls|xlsx)$/i.test(n))return "📊";if(/\.(ppt|pptx)$/i.test(n))return "📽️";return "📦";}
+function humanError(e){const c=e?.code||"";const map={"auth/popup-blocked":"Popup Google bị trình duyệt chặn.","auth/popup-closed-by-user":"Bạn đã đóng cửa sổ Google.","auth/unauthorized-domain":"Domain hiện tại chưa được thêm vào Authorized domains của Firebase.","auth/operation-not-allowed":"Firebase chưa bật phương thức đăng nhập này.","auth/network-request-failed":"Mạng gặp lỗi khi kết nối Firebase.","PERMISSION_DENIED":"Firebase Realtime Database bị từ chối quyền.","permission-denied":"Firebase Realtime Database bị từ chối quyền."};return map[c]||e?.message||String(e);}
+async function withTimeout(p,ms){let t;return Promise.race([p, new Promise((_,rej)=>t=setTimeout(()=>rej(new Error("TIMEOUT")),ms))]).finally(()=>clearTimeout(t));}
+async function setWithRetry(path,value,label,onRetry){let last;for(let attempt=1;attempt<=MAX_RETRIES;attempt++){try{return await withTimeout(set(ref(db,path),value),WRITE_TIMEOUT);}catch(e){last=e;if(attempt<MAX_RETRIES){onRetry?.(attempt,e);await new Promise(r=>setTimeout(r,Math.min(1200*attempt,3000)));}}}throw last;}
+async function ensureSampleRoom(){
+  const metaRef=ref(db,`rooms/${ROOM_SAMPLE}/meta`);
   try{
-    $("content").innerHTML='<div class="empty">☁️ Đang tải kho chung...</div>';
-    const result=await listAll(ref(storage,ROOT));
-    const files=await Promise.all(result.items.map(async item=>{
-      const [url,meta]=await Promise.all([getDownloadURL(item),getMetadata(item)]);
-      return {
-        name:meta.name,
-        size:Number(meta.size||0),
-        type:meta.contentType||"application/octet-stream",
-        url,
-        path:item.fullPath,
-        created:new Date(meta.timeCreated||0).getTime()
-      };
-    }));
-    const pending=[...pendingFiles.values()];
-    allFiles=[...pending,...files].sort((a,b)=>b.created-a.created);
-    render();
-  }catch(e){
-    console.error(e);
-    $("content").innerHTML=`<div class="empty">❌ Không thể đọc kho chung.<br><br><b>${esc(e.code||e.message)}</b><br><br>Hãy kiểm tra Firebase Storage đã bật và Rules cho phép đọc.</div>`;
-    toast("Firebase Storage lỗi: "+(e.code||e.message)+" — hãy kiểm tra Storage Rules",true);
-  }
-}
-
-function render(){
-  const q=$("search").value.trim().toLowerCase();
-  let list=allFiles.filter(f=>f.name.toLowerCase().includes(q));
-  if(currentView==="pdf")list=list.filter(f=>f.type==="application/pdf");
-  if(currentView==="image")list=list.filter(f=>f.type.startsWith("image/"));
-  if(currentView==="text")list=list.filter(f=>f.type.startsWith("text/"));
-  list.sort((a,b)=>b.created-a.created);
-
-  $("count").textContent=list.length+" mục";
-  $("title").textContent={all:"Tất cả tệp",pdf:"PDF",image:"Hình ảnh",text:"Văn bản"}[currentView];
-
-  const total=allFiles.reduce((s,f)=>s+f.size,0);
-  $("storageText").textContent=fmtSize(total)+" • lưu chung trên cloud";
-  $("storageProgress").style.width=Math.min(100,total/(10*1024**3)*100)+"%";
-
-  if(!list.length){
-    $("content").innerHTML='<div class="empty">Chưa có tệp.</div>';
-    return;
-  }
-
-  const grid=document.createElement("div");
-  grid.className="grid";
-
-  list.forEach(f=>{
-    const card=document.createElement("div");
-    card.className="card";
-    card.dataset.path=f.path;
-
-    const ic=document.createElement("div");
-    ic.className="icon";
-
-    if(f.type.startsWith("image/")){
-      const img=document.createElement("img");
-      img.className="thumb";
-      img.src=f.url;
-      img.loading="lazy";
-      ic.appendChild(img);
-    }else{
-      ic.textContent=iconFor(f.type,f.name);
+    await runTransaction(metaRef,current=>current || {roomId:ROOM_SAMPLE,roomName:"PHÒNG MẪU",passwordHash:`${SAMPLE_SALT}$${SAMPLE_HASH}`,ownerUid:"SYSTEM_SAMPLE",ownerEmail:"sample@roomdrive.local",ownerName:"RoomDrive",createdAt:nowish(),updatedAt:nowish(),allowUploads:true,isSample:true});
+    const filesSnap=await get(ref(db,`rooms/${ROOM_SAMPLE}/filesMeta`));
+    if(!filesSnap.exists()){
+      const id="readme";const content="RoomDrive – README.txt\n\nĐây là phòng mẫu để kiểm tra upload/download.\nMã phòng: PHONGMAU\nMật khẩu: 123456\n";const bytes=new TextEncoder().encode(content);let bin="";for(const b of bytes)bin+=String.fromCharCode(b);const b64=btoa(bin);await set(ref(db,`rooms/${ROOM_SAMPLE}/fileData/${id}/0`),b64);await set(ref(db,`rooms/${ROOM_SAMPLE}/filesMeta/${id}`),{name:"README.txt",size:bytes.length,contentType:"text/plain",totalChunks:1,chunkSize:CHUNK_SIZE,createdAt:nowish(),uploaderUid:"SYSTEM_SAMPLE",uploaderName:"RoomDrive"});
     }
-
-    const name=document.createElement("div");
-    name.className="name";
-    name.title=f.name;
-    name.textContent=f.name;
-
-    const meta=document.createElement("div");
-    meta.className="meta";
-    meta.textContent=fmtSize(f.size)+" · "+new Date(f.created).toLocaleDateString("vi-VN");
-
-    const actions=document.createElement("div");
-    actions.className="actions";
-
-    const view=document.createElement("button");
-    view.className="smallBtn";
-    view.textContent="Xem";
-    view.onclick=e=>{e.stopPropagation();openViewer(f)};
-
-    const dl=document.createElement("a");
-    dl.className="smallBtn blueBtn";
-    dl.textContent="Tải";
-    dl.href=f.url;
-    dl.target="_blank";
-    dl.download=f.name;
-    dl.onclick=e=>e.stopPropagation();
-
-    const del=document.createElement("button");
-    del.className="smallBtn redBtn";
-    del.textContent="Xóa";
-    del.onclick=e=>{e.stopPropagation();deleteFile(f)};
-
-    actions.append(view,dl,del);
-    card.append(ic,name,meta,actions);
-    card.ondblclick=()=>openViewer(f);
-    grid.appendChild(card);
-  });
-
-  $("content").innerHTML="";
-  $("content").appendChild(grid);
+  }catch(e){ console.warn("Sample init",e); if(e?.code==="PERMISSION_DENIED"||e?.message?.includes("PERMISSION")) toast("❌ Firebase Database bị từ chối quyền khi tạo PHÒNG MẪU","bad"); }
 }
 
-function uploadFile(file){
-  // Hiện file ngay lập tức trên máy của người upload; upload thật chạy nền.
-  const localId="pending_"+crypto.randomUUID();
-  const localUrl=URL.createObjectURL(file);
-  const optimistic={id:localId,name:file.name,size:file.size,type:file.type||"application/octet-stream",url:localUrl,path:null,created:Date.now(),pending:true};
-  pendingFiles.set(localId,optimistic);
-  allFiles.unshift(optimistic);
-  render();
-
-  const row=document.createElement("div");
-  row.className="uploadItem";
-  row.innerHTML=`<div class="uploadTop"><div class="uploadName">${esc(file.name)}</div><span>0%</span></div><div class="uploadBar"><i></i></div><div class="uploadState">Đang upload...</div>`;
-  const box=$("progressList");
-  box.style.display="grid";
-  box.prepend(row);
-
-  const pct=row.querySelector(".uploadTop span");
-  const bar=row.querySelector(".uploadBar i");
-  const state=row.querySelector(".uploadState");
-
-  const clean=file.name.replace(/[^\w.\-() ]/g,"_").slice(0,180);
-  const path=`${ROOT}/${crypto.randomUUID()}_${clean}`;
-  const task=uploadBytesResumable(
-    ref(storage,path),
-    file,
-    {
-      contentType:file.type||"application/octet-stream",
-      cacheControl:"public,max-age=31536000,immutable"
-    }
-  );
-
-  task.on("state_changed",
-    snap=>{
-      const p=snap.totalBytes?Math.floor(snap.bytesTransferred/snap.totalBytes*100):0;
-      pct.textContent=p+"%";
-      bar.style.width=p+"%";
-      state.textContent=p<100?"Đang tải trực tiếp...":"Đang hoàn tất...";
-    },
-    err=>{
-      console.error(err);
-      const idx=allFiles.findIndex(x=>x.id===localId);
-      if(idx>=0) allFiles.splice(idx,1);
-      pendingFiles.delete(localId);
-      URL.revokeObjectURL(localUrl);
-      render();
-      state.textContent="❌ "+(err.code||err.message);
-      bar.style.background="#d93025";
-      toast("Không tải lên được: "+(err.code||err.message)+" — kiểm tra Storage Rules",true);
-    },
-    async()=>{
-      try{
-        const url=await getDownloadURL(task.snapshot.ref);
-        const idx=allFiles.findIndex(x=>x.id===localId);
-        if(idx>=0){
-          allFiles[idx]={id:localId,name:file.name,size:file.size,type:file.type||"application/octet-stream",url,path,created:Date.now(),pending:false};
-        }
-        pendingFiles.delete(localId);
-        URL.revokeObjectURL(localUrl);
-        render();
-        state.textContent="✅ Đã lưu vĩnh viễn";
-        pct.textContent="100%";
-        bar.style.width="100%";
-        toast("✅ Đã lưu "+file.name+" — mọi người đều thấy");
-        setTimeout(()=>row.remove(),1500);
-      }catch(e){
-        console.error(e);
-        state.textContent="❌ "+(e.code||e.message);
-        toast("Upload xong nhưng không đọc được file: "+(e.code||e.message),true);
-      }
-    }
-  );
+function renderLogin(){
+  $('app').innerHTML=`<main class="login"><section class="login-card"><div class="logo">R</div><h1>RoomDrive</h1><p>Lưu và chia sẻ file theo từng phòng, chạy trực tiếp trên trình duyệt với Firebase Realtime Database.</p><div class="sample-note"><b>Phòng mẫu:</b> PHONGMAU &nbsp;•&nbsp; <b>Mật khẩu:</b> 123456</div><button class="google-btn" id="googleLogin">🔐 Đăng nhập bằng Google</button><div class="or">HOẶC</div><button class="btn outline" style="width:100%" id="guestJoin">🚪 Tham gia phòng mẫu / phòng khác</button><p class="mini" style="margin-top:15px">Bạn có thể dùng tài khoản Google cho phòng riêng hoặc tài khoản khách cho việc tham gia.</p></section></main>`;
+  $('googleLogin').onclick=googleLogin;
+  $('guestJoin').onclick=()=>openJoinModal();
 }
 
-async function deleteFile(file){
-  if(!confirm("Xóa "+file.name+" khỏi kho chung?"))return;
-  try{
-    await deleteObject(ref(storage,file.path));
-    toast("🗑️ Đã xóa khỏi kho chung");
-    await loadFiles();
-  }catch(e){
-    console.error(e);
-    toast("Không thể xóa: "+(e.code||e.message),true);
-  }
+function renderApp(){
+  const u=state.user; const display=esc(u?.displayName||"Khách"); const email=esc(u?.email||"Tài khoản khách");
+  $('app').innerHTML=`<div class="app"><header class="topbar"><div class="brand"><div class="logo">R</div><div><h1>RoomDrive</h1><small>Cloud rooms made simple</small></div></div><div class="search"><span>⌕</span><input id="search" placeholder="Tìm phòng hoặc file..." autocomplete="off"></div><div class="top-actions"><button class="btn primary" id="createRoom">＋ Tạo phòng</button><button class="btn ghost" id="joinRoom">＋ Tham gia</button><img class="avatar" id="topAvatar" src="${esc(u?.photoURL||"")}" onerror="this.style.display='none'" alt="Avatar"><button class="btn outline" id="logout">Đăng xuất</button></div></header><div class="layout"><aside class="sidebar"><button class="side-btn active" id="navRooms">🏠 Phòng của tôi</button><button class="side-btn" id="navSample">🧪 Phòng mẫu</button><button class="side-btn" id="navJoin">🚪 Tham gia phòng</button><div class="side-label">Tài khoản</div><div class="userbox"><img class="avatar" src="${esc(u?.photoURL||"")}" onerror="this.style.display='none'" alt=""><div class="u-text"><b>${display}</b><span>${email}</span></div></div></aside><main class="content" id="main"></main></div></div>`;
+  $('logout').onclick=async()=>{try{await signOut(auth);state.joined=null;toast("✅ Đã đăng xuất","good");}catch(e){toast("❌ "+humanError(e),"bad");}};
+  $('createRoom').onclick=openCreateModal;$('joinRoom').onclick=openJoinModal;$('navJoin').onclick=openJoinModal;$('navSample').onclick=()=>enterRoom(ROOM_SAMPLE);$('navRooms').onclick=showHome;$('search').oninput=e=>{state.query=e.target.value;showHome();};showHome();
 }
 
-function openViewer(f){
-  currentFile=f;
-  $("viewerTitle").textContent=f.name;
-  $("viewerBody").innerHTML="";
-  const t=f.type||"";
-  if(t.startsWith("image/")){
-    $("viewerBody").innerHTML=`<img src="${f.url}" alt="">`;
-  }else if(t.startsWith("video/")){
-    $("viewerBody").innerHTML=`<video src="${f.url}" controls autoplay style="max-width:100%;max-height:100%"></video>`;
-  }else if(t==="application/pdf"){
-    $("viewerBody").innerHTML=`<iframe src="${f.url}"></iframe>`;
-  }else if(t.startsWith("audio/")){
-    $("viewerBody").innerHTML=`<audio src="${f.url}" controls autoplay style="width:min(700px,90%)"></audio>`;
-  }else{
-    $("viewerBody").innerHTML=`<div class="empty">Không có trình xem trực tiếp cho file này.<br><br><a href="${f.url}" target="_blank">Mở / tải file</a></div>`;
-  }
-  $("modal").classList.add("open");
+function showHome(){if(state.joined){showRoom();return;}const q=state.query.toLowerCase();const rooms=Object.values(state.rooms).filter(r=>`${r.roomName} ${r.roomId}`.toLowerCase().includes(q));
+  $('main').innerHTML=`<section class="hero"><div><h2>Không gian lưu trữ riêng của bạn</h2><p>Tạo phòng, mời người khác bằng mã phòng và lưu file theo từng chunk.</p></div><div class="hero-actions"><button class="btn primary" id="heroCreate">＋ Tạo phòng</button><button class="btn outline" id="heroJoin">🚪 Tham gia phòng</button></div></section><section class="section"><div class="section-head"><div><div class="section-title">PHÒNG CỦA TÔI</div><div class="sub">Dữ liệu lấy trực tiếp từ Firebase Realtime Database.</div></div></div><div class="rooms-grid">${rooms.length?rooms.map(roomCard).join(""):`<div class="empty" style="grid-column:1/-1">Chưa có phòng nào. Tạo phòng đầu tiên để bắt đầu.</div>`}</div></section><section class="section"><div class="section-head"><div><div class="section-title">🧪 Phòng mẫu</div><div class="sub">Dùng mã <b>PHONGMAU</b> và mật khẩu <b>123456</b> để kiểm tra realtime + upload/download.</div></div><button class="btn outline small" id="openSample">Mở phòng mẫu</button></div></section>`;
+  $('heroCreate').onclick=openCreateModal;$('heroJoin').onclick=openJoinModal;$('openSample').onclick=()=>enterRoom(ROOM_SAMPLE);
+  document.querySelectorAll("[data-room-open]").forEach(b=>b.onclick=()=>enterRoom(b.dataset.roomOpen));
+  document.querySelectorAll("[data-room-delete]").forEach(b=>b.onclick=()=>deleteRoom(b.dataset.roomDelete));
 }
+function roomCard(r){return `<article class="room-card"><div class="room-top"><div class="room-icon">🏠</div><div style="min-width:0;flex:1"><h3>${esc(r.roomName)}</h3><div class="meta">Chủ phòng: ${esc(r.ownerName||r.ownerEmail||"Bạn")}<br>Ngày tạo: ${esc(fmtDate(r.createdAt))}</div></div></div><div class="room-code"><span>Mã: <b>${esc(r.roomId)}</b></span><button class="btn small outline" data-copy="${esc(r.roomId)}">Copy</button></div><div class="room-actions"><button class="btn primary small" data-room-open="${esc(r.roomId)}">Vào phòng</button><button class="btn danger small" data-room-delete="${esc(r.roomId)}">Xóa</button></div></article>`}
 
-$("uploadBtn").onclick=()=>$("fileInput").click();
-$("fileInput").onchange=e=>{
-  [...e.target.files].forEach(uploadFile);
-  e.target.value="";
-};
-$("search").oninput=render;
-$("drop").ondragover=e=>{e.preventDefault();$("drop").style.background="#e8f0fe"};
-$("drop").ondragleave=()=>$("drop").style.background="";
-$("drop").ondrop=e=>{
-  e.preventDefault();
-  $("drop").style.background="";
-  [...e.dataTransfer.files].forEach(uploadFile);
-};
-$("closeBtn").onclick=()=>{$("modal").classList.remove("open");$("viewerBody").innerHTML=""};
-$("modal").onclick=e=>{if(e.target===$("modal"))$("closeBtn").click()};
-$("downloadBtn").onclick=()=>{
-  if(currentFile){
-    const a=document.createElement("a");
-    a.href=currentFile.url;
-    a.target="_blank";
-    a.download=currentFile.name;
-    a.click();
-  }
-};
-document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
-  currentView=b.dataset.view;
-  document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");
-  render();
-});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-copy]");if(b){navigator.clipboard?.writeText(b.dataset.copy).then(()=>toast("✅ Đã copy","good")).catch(()=>toast("Không thể copy tự động","bad"));}});
 
-loadFiles();
+function openModal(html){$('modalRoot').innerHTML=`<div class="backdrop" id="backdrop"><section class="modal">${html}</section></div>`;$('backdrop').addEventListener('click',e=>{if(e.target.id==='backdrop')closeModal();});}
+function closeModal(){$('modalRoot').innerHTML="";}
+function openCreateModal(){
+  if(!state.user||state.user.isAnonymous){toast("❌ Hãy đăng nhập Google để tạo phòng.","bad");return;}
+  const code=randomCode(8);openModal(`<div class="modal-head"><h3>＋ Tạo phòng mới</h3><button class="x" id="close">✕</button></div><div class="field"><label>Mã phòng (tự tạo)</label><input id="newCode" value="${code}" maxlength="8" style="text-transform:uppercase"></div><div class="field"><label>Tên phòng</label><input id="newName" value="Phòng mới" maxlength="80"></div><div class="row"><div class="field"><label>Mật khẩu</label><div style="display:flex;gap:7px"><input id="newPass" value="${randomCode(10)}" type="password"><button class="btn outline small" id="togglePass">👁</button></div></div><div class="field"><label>Cho thành viên upload</label><label class="toggle" style="height:43px"><span class="mini">Có / Không</span><input id="allowUploads" type="checkbox" checked></label></div></div><div class="modal-actions"><button class="btn outline" id="cancel">Hủy</button><button class="btn primary" id="saveRoom">Tạo phòng</button></div>`);$('close').onclick=closeModal;$('cancel').onclick=closeModal;$('togglePass').onclick=()=>{const p=$('newPass');p.type=p.type==='password'?'text':'password';};$('saveRoom').onclick=createRoom;
+}
+async function createRoom(){const btn=$('saveRoom');btn.disabled=true;btn.innerHTML=`<span class="spinner"></span> Đang tạo...`;try{const roomId=normalizeRoomCode($('newCode').value)||randomCode();if(roomId.length<6||roomId.length>8)throw new Error("Mã phòng phải dài 6–8 ký tự.");const exists=await get(ref(db,`rooms/${roomId}/meta`));if(exists.exists())throw new Error("Mã phòng đã tồn tại, hãy tạo lại.");const roomName=$('newName').value.trim()||"Phòng mới";const pass=$('newPass').value;if(pass.length<4)throw new Error("Mật khẩu phải có ít nhất 4 ký tự.");const passwordHash=await hashPassword(pass);const ts=nowish();const data={roomId,roomName,passwordHash,ownerUid:state.user.uid,ownerEmail:state.user.email||"",ownerName:state.user.displayName||"",createdAt:ts,updatedAt:ts,allowUploads:$('allowUploads').checked};const updates={};updates[`rooms/${roomId}/meta`]=data;updates[`users/${state.user.uid}/rooms/${roomId}`]=data;await update(ref(db),updates);closeModal();toast("✅ Tạo phòng thành công","good");await enterRoom(roomId,true);}catch(e){toast("❌ "+humanError(e),"bad");btn.disabled=false;btn.textContent="Tạo phòng";}}
+
+function openJoinModal(prefill=""){openModal(`<div class="modal-head"><h3>🚪 Tham gia phòng</h3><button class="x" id="close">✕</button></div><div class="field"><label>Mã phòng</label><input id="joinCode" value="${esc(prefill)}" placeholder="Ví dụ: X8K2P9Q1" maxlength="8" style="text-transform:uppercase"></div><div class="field"><label>Mật khẩu</label><div style="display:flex;gap:7px"><input id="joinPass" type="password" placeholder="Mật khẩu phòng"><button class="btn outline small" id="joinEye">👁</button></div></div><div class="mini">Khách có thể dùng Anonymous Auth; không cần Gmail để tham gia phòng.</div><div class="modal-actions"><button class="btn outline" id="cancel">Hủy</button><button class="btn primary" id="doJoin">Vào phòng</button></div>`);$('close').onclick=closeModal;$('cancel').onclick=closeModal;$('joinEye').onclick=()=>{const p=$('joinPass');p.type=p.type==='password'?'text':'password';};$('doJoin').onclick=joinRoom;}
+async function ensureAuthForJoin(){if(auth.currentUser)return auth.currentUser;try{const c=await signInAnonymously(auth);return c.user;}catch(e){throw new Error("Không thể đăng nhập Anonymous. Hãy bật Anonymous provider trong Firebase Authentication.");}}
+async function joinRoom(){const btn=$('doJoin');btn.disabled=true;btn.innerHTML=`<span class="spinner"></span> Đang kiểm tra...`;try{const code=normalizeRoomCode($('joinCode').value);const pass=$('joinPass').value;if(!code)throw new Error("❌ Không tìm thấy phòng");const snap=await get(ref(db,`rooms/${code}/meta`));if(!snap.exists())throw new Error("❌ Không tìm thấy phòng");const meta=snap.val();if(!(await verifyPassword(pass,meta.passwordHash)))throw new Error("❌ Sai mật khẩu");await ensureAuthForJoin();const session={uid:auth.currentUser.uid,roomId:code,version:meta.updatedAt||meta.createdAt||1,expiresAt:Date.now()+7*24*3600*1000};await set(ref(db,`roomAccess/${auth.currentUser.uid}/${code}`),session);closeModal();toast("✅ Vào phòng thành công","good");await enterRoom(code,true);}catch(e){toast(humanError(e),"bad");btn.disabled=false;btn.textContent="Vào phòng";}}
+
+async function enterRoom(roomId,fromAction=false){roomId=normalizeRoomCode(roomId);if(state.unsubMeta)state.unsubMeta();if(state.unsubFiles)state.unsubFiles();state.joined=null;try{
+  let u=auth.currentUser;if(!u)u=await ensureAuthForJoin();const metaSnap=await get(ref(db,`rooms/${roomId}/meta`));if(!metaSnap.exists()){toast("❌ Không tìm thấy phòng","bad");return;}const meta=metaSnap.val();if(meta.ownerUid!==u.uid){const a=await get(ref(db,`roomAccess/${u.uid}/${roomId}`));if(!a.exists()||Number(a.val().expiresAt||0)<=Date.now()){openJoinModal(roomId);return;}}
+  state.joined={roomId,meta,files:{}};showRoom();
+  state.unsubMeta=onValue(ref(db,`rooms/${roomId}/meta`),snap=>{if(!snap.exists()){toast("Phòng đã bị xóa","bad");state.joined=null;showHome();return;}state.joined.meta=snap.val();showRoom();});
+  state.unsubFiles=onValue(ref(db,`rooms/${roomId}/filesMeta`),snap=>{state.joined.files=snap.val()||{};showRoom();});
+}catch(e){toast("❌ "+humanError(e),"bad");}}
+function showRoom(){if(!state.joined){showHome();return;}const r=state.joined.meta;const isOwner=state.user&&r.ownerUid===state.user.uid;const canUpload=isOwner||r.allowUploads!==false;const all=Object.values(state.joined.files||{}).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));const q=state.query.toLowerCase();const files=q?all.filter(f=>`${f.name} ${f.uploaderName}`.toLowerCase().includes(q)):all;
+  $('main').innerHTML=`<section class="section"><div class="room-view"><div class="room-view-head"><div><h2>${esc(r.roomName)}</h2><p>Mã phòng: <b>${esc(r.roomId)}</b> · Chủ phòng: ${esc(r.ownerName||r.ownerEmail||"")}</p><p style="margin-top:4px">${isOwner?'👑 Bạn là chủ phòng':(canUpload?'👤 Thành viên · được upload':'👤 Thành viên · chỉ xem')}</p></div><div class="room-tools"><button class="btn outline small" id="copyRoom">Copy mã</button><button class="btn outline small" id="copyLink">🔗 Copy link</button>${isOwner?'<button class="btn outline small" id="editRoom">⚙️ Cài đặt</button>':''}<button class="btn outline small" id="backHome">← Phòng của tôi</button></div></div>${canUpload?`<div class="drop" id="drop"><strong>📤 Kéo & thả file vào đây</strong><p>File được chia thành chunk ~64 KB và ghi tuần tự vào Firebase Realtime Database.</p><button class="btn primary" id="pick">Chọn file</button><input id="fileInput" type="file" multiple hidden></div>`:`<div class="drop"><strong>👀 Phòng đang ở chế độ chỉ xem</strong><p>Chỉ chủ phòng mới có thể đổi quyền upload.</p></div>`}<div class="section-head" style="margin-top:22px"><div><div class="section-title">Tệp trong phòng</div><div class="sub">${files.length} tệp · realtime</div></div></div><div class="file-grid">${files.length?files.map(f=>fileCard(f,isOwner)).join(""):`<div class="empty" style="grid-column:1/-1">Chưa có file.</div>`}</div></div></section>`;
+  $('backHome').onclick=()=>{state.joined=null;if(state.unsubMeta)state.unsubMeta();if(state.unsubFiles)state.unsubFiles();showHome();};$('copyRoom').onclick=()=>navigator.clipboard?.writeText(r.roomId).then(()=>toast("✅ Đã copy mã phòng","good"));$('copyLink').onclick=()=>navigator.clipboard?.writeText(location.href.split('#')[0]+`#room=${encodeURIComponent(r.roomId)}`).then(()=>toast("✅ Đã copy link phòng","good"));if(isOwner)$('editRoom').onclick=()=>openEditRoom();if(canUpload){$('pick').onclick=()=>$('fileInput').click();$('fileInput').onchange=e=>{for(const f of e.target.files)uploadFile(f);};setupDrop();}
+  document.querySelectorAll("[data-download]").forEach(b=>b.onclick=()=>downloadFile(b.dataset.download));document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>viewFile(b.dataset.view));document.querySelectorAll("[data-share]").forEach(b=>b.onclick=()=>copyText(getFileLink(r.roomId,b.dataset.share),"✅ Đã copy link file"));document.querySelectorAll("[data-open-link]").forEach(b=>b.onclick=()=>{location.href=getFileLink(r.roomId,b.dataset.openLink);});if(isOwner)document.querySelectorAll("[data-file-delete]").forEach(b=>b.onclick=()=>deleteFile(b.dataset.fileDelete));
+}
+function getFileLink(roomId,fileId){return location.href.split("#")[0]+"#/file/"+encodeURIComponent(roomId)+"/"+encodeURIComponent(fileId);}
+function copyText(text,ok="✅ Đã copy link"){return navigator.clipboard?.writeText(text).then(()=>toast(ok,"good")).catch(()=>{const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();toast(ok,"good");});}
+function fileCard(f,isOwner){const link=getFileLink(state.joined.roomId,f.fileId);return `<article class="file-card"><div class="file-icon">${iconFor(f.name,f.contentType)}</div><div class="file-info"><div class="file-name" title="${esc(f.name)}">${esc(f.name)}</div><div class="file-meta">${fmtSize(Number(f.size||0))} · ${esc(f.uploaderName||"Không rõ")}<br>${esc(fmtDate(f.createdAt))}</div><div class="file-actions"><button class="btn outline small" data-view="${esc(f.fileId)}">👁 Xem</button><button class="btn primary small" data-download="${esc(f.fileId)}">⬇ Tải</button><button class="btn ghost small" data-share="${esc(f.fileId)}">🔗 Link</button><button class="btn outline small" data-open-link="${esc(f.fileId)}">↗ Mở link</button>${isOwner?`<button class="btn danger small" data-file-delete="${esc(f.fileId)}">🗑</button>`:""}</div><div class="share-box"><div class="mini">Link file riêng</div><div class="share-url">${esc(link)}</div></div></div></article>`;}
+function setupDrop(){const d=$('drop');d.ondragover=e=>{e.preventDefault();d.classList.add('drag')};d.ondragleave=()=>d.classList.remove('drag');d.ondrop=e=>{e.preventDefault();d.classList.remove('drag');for(const f of e.dataTransfer.files)uploadFile(f)};}
+async function uploadFile(file){if(!state.joined)return;const r=state.joined.meta;const u=auth.currentUser;if(!u){toast("❌ Chưa đăng nhập","bad");return;}const fileId=push(ref(db,`rooms/${r.roomId}/filesMeta`)).key;const totalChunks=Math.max(1,Math.ceil(file.size/CHUNK_SIZE));const boxId=`upload_${fileId}`;const drop=$('drop');const wrap=document.createElement('div');wrap.className='setting-card';wrap.id=boxId;wrap.innerHTML=`<div class="toggle"><div><b>${esc(file.name)}</b><div class="mini">0 / ${totalChunks} chunk · 0%</div></div><span class="mini" id="status_${fileId}">Đang chuẩn bị...</span></div><div class="progress"><span id="bar_${fileId}"></span></div><div class="upload-status" id="msg_${fileId}"></div>`;drop.after(wrap);
+  let saved=0;const updateUI=(msg)=>{const p=Math.floor(saved/totalChunks*100);const bar=$(`bar_${fileId}`),st=$(`status_${fileId}`),ms=$(`msg_${fileId}`);if(bar)bar.style.width=p+"%";if(st)st.textContent=`${saved} / ${totalChunks} chunk · ${p}%`;if(ms)ms.textContent=msg||"";};
+  try{for(let i=0;i<totalChunks;i++){const blob=file.slice(i*CHUNK_SIZE,Math.min(file.size,(i+1)*CHUNK_SIZE));const buf=new Uint8Array(await blob.arrayBuffer());let binary="";const step=0x8000;for(let j=0;j<buf.length;j+=step)binary+=String.fromCharCode(...buf.subarray(j,j+step));const b64=btoa(binary);await setWithRetry(`rooms/${r.roomId}/fileData/${fileId}/${i}`,b64,`Chunk ${i+1}/${totalChunks}`,(attempt)=>updateUI(`Chunk ${i+1}/${totalChunks} thất bại – đang thử lại (lần ${attempt+1})...`));saved=i+1;updateUI(`Đã lưu chunk ${saved}/${totalChunks}`);}
+    const meta={fileId,name:file.name,size:file.size,contentType:file.type||"application/octet-stream",totalChunks,chunkSize:CHUNK_SIZE,createdAt:nowish(),uploaderUid:u.uid,uploaderName:u.displayName||u.email||"Khách"};await setWithRetry(`rooms/${r.roomId}/filesMeta/${fileId}`,meta,"Metadata",()=>updateUI("Metadata lỗi – đang thử lại..."));updateUI("✅ Upload thành công");toast(`✅ ${file.name} đã upload thành công`,"good");setTimeout(()=>document.getElementById(boxId)?.remove(),2500);
+  }catch(e){updateUI("❌ Upload thất bại sau 3 lần thử.");toast("❌ Upload thất bại: "+humanError(e),"bad");}}
+
+function b64ToBytes(b64){const bin=atob(b64);const out=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out;}
+async function readFileBlob(meta){const parts=[];for(let i=0;i<meta.totalChunks;i++){const s=await get(ref(db,`rooms/${state.joined.roomId}/fileData/${meta.fileId}/${i}`));if(!s.exists())throw new Error(`Thiếu chunk ${i+1}/${meta.totalChunks}`);parts.push(b64ToBytes(s.val()));}return new Blob(parts,{type:meta.contentType||"application/octet-stream"});}
+async function downloadFile(fileId){const meta=state.joined?.files?.[fileId];if(!meta)return;toast("Đang tải file...","good");try{const blob=await readFileBlob(meta);const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=meta.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),5000);toast("✅ Tải xuống thành công","good");}catch(e){toast("❌ Không thể tải: "+humanError(e),"bad");}}
+async function viewFile(fileId){const meta=state.joined?.files?.[fileId];if(!meta)return;openViewerForMeta(state.joined.roomId,meta);}
+async function openViewerForMeta(roomId,meta){openModal(`<div class="viewer"><div class="viewer-head"><div>${esc(meta.name)}</div><button class="x" id="closeViewer">✕</button></div><div class="viewer-body" id="viewerBody"><span style="color:#fff">Đang tải file...</span></div></div>`);$('closeViewer').onclick=closeModal;try{const blob=await readFileBlobFromRoom(roomId,meta);const url=URL.createObjectURL(blob);const body=$('viewerBody');const type=String(meta.contentType||'application/octet-stream').toLowerCase();const name=String(meta.name||'');if(type.startsWith('video/')){body.innerHTML=`<video src="${url}" controls autoplay playsinline preload="metadata"></video>`;}else if(type.startsWith('audio/')){body.innerHTML=`<audio src="${url}" controls autoplay></audio>`;}else if(type.startsWith('image/')){body.innerHTML=`<img src="${url}" alt="${esc(name)}">`;}else if(type==='application/pdf'||/\.pdf$/i.test(name)){body.innerHTML=`<iframe src="${url}" title="PDF"></iframe>`;}else if(type.startsWith('text/')||/\.(txt|md|json|csv|html|css|js|xml|log)$/i.test(name)){const text=await blob.text();body.innerHTML=`<pre>${esc(text)}</pre>`;}else if(/\.(doc|docx|xls|xlsx|ppt|pptx)$/i.test(name)){body.innerHTML=`<div class="viewer-office"><h2>📄 ${esc(name)}</h2><p>File Office đã được lưu thành công. Trình duyệt không có Word/Excel/PowerPoint engine tích hợp để chuyển đổi chính xác sang PDF.</p><p>Bạn có thể mở file bằng ứng dụng Office trên thiết bị hoặc tải file xuống.</p><button class="btn primary" id="downloadFromView">⬇ Tải xuống</button></div>`;}else{body.innerHTML=`<div style="color:#fff;text-align:center;padding:30px"><div style="font-size:52px">${iconFor(name,type)}</div><h3>${esc(name)}</h3><p>Trình duyệt không xem trực tiếp loại file này.</p><button class="btn primary" id="downloadFromView">⬇ Tải xuống</button></div>`;}if($('downloadFromView'))$('downloadFromView').onclick=()=>{closeModal();downloadFileFromRoom(roomId,meta);};}catch(e){$('viewerBody').innerHTML=`<span style="color:#ffadb8">❌ ${esc(humanError(e))}</span>`;}}
+async function readFileBlobFromRoom(roomId,meta){const parts=[];for(let i=0;i<Number(meta.totalChunks||0);i++){const s=await get(ref(db,`rooms/${roomId}/fileData/${meta.fileId}/${i}`));if(!s.exists())throw new Error(`Thiếu chunk ${i+1}/${meta.totalChunks}`);parts.push(b64ToBytes(s.val()));}return new Blob(parts,{type:meta.contentType||"application/octet-stream"});}
+async function downloadFileFromRoom(roomId,meta){toast("Đang tải file...","good");try{const blob=await readFileBlobFromRoom(roomId,meta);const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=meta.name;a.rel='noopener';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);toast("✅ Tải xuống thành công","good");}catch(e){toast("❌ Không thể tải: "+humanError(e),"bad");}}
+async function openSharedFileLink(roomId,fileId){roomId=normalizeRoomCode(roomId);if(!roomId||!fileId)return;try{const metaSnap=await get(ref(db,`rooms/${roomId}/meta`));if(!metaSnap.exists()){renderRouteError("❌ Không tìm thấy phòng");return;}const meta=metaSnap.val();const fileSnap=await get(ref(db,`rooms/${roomId}/filesMeta/${fileId}`));if(!fileSnap.exists()){renderRouteError("❌ Không tìm thấy file");return;}const fileMeta=fileSnap.val();const u=auth.currentUser||await ensureAuthForJoin();const owner=meta.ownerUid===u.uid;const a=await get(ref(db,`roomAccess/${u.uid}/${roomId}`));const accessOK=owner||(a.exists()&&Number(a.val().expiresAt||0)>Date.now()&&String(a.val().version)===String(meta.updatedAt||meta.createdAt));if(accessOK){await openViewerForMeta(roomId,fileMeta);return;}openSharedPasswordModal(roomId,meta,fileMeta);}catch(e){renderRouteError("❌ "+humanError(e));}}
+function openSharedPasswordModal(roomId,roomMeta,fileMeta){openModal(`<div class="modal-head"><h3>🔐 Link file RoomDrive</h3></div><p style="color:#59647a;line-height:1.6">File <b>${esc(fileMeta.name)}</b> thuộc phòng <b>${esc(roomMeta.roomName)}</b>. Nhập mật khẩu phòng để xem file.</p><div class="field"><label>Mật khẩu phòng</label><div style="display:flex;gap:7px"><input id="sharedPass" type="password" placeholder="Nhập mật khẩu"><button class="btn outline small" id="sharedEye">👁</button></div></div><div class="share-box"><div class="mini">Link này có thể gửi cho người khác. Người nhận vẫn cần mật khẩu phòng.</div></div><div class="modal-actions"><button class="btn outline" id="sharedBack">Trang chủ</button><button class="btn primary" id="sharedOpen">🔓 Mở file</button></div>`);$('sharedEye').onclick=()=>{const x=$('sharedPass');x.type=x.type==='password'?'text':'password';};$('sharedBack').onclick=()=>{closeModal();location.hash="";handleRoute();};$('sharedOpen').onclick=async()=>{const btn=$('sharedOpen');btn.disabled=true;btn.textContent="Đang kiểm tra...";try{if(!(await verifyPassword($('sharedPass').value,roomMeta.passwordHash)))throw new Error("❌ Sai mật khẩu");const u=auth.currentUser||await ensureAuthForJoin();await set(ref(db,`roomAccess/${u.uid}/${roomId}`),{uid:u.uid,roomId,version:roomMeta.updatedAt||roomMeta.createdAt||1,expiresAt:Date.now()+7*24*3600*1000});closeModal();toast("✅ Xác thực thành công","good");await openViewerForMeta(roomId,fileMeta);}catch(e){toast(humanError(e),"bad");btn.disabled=false;btn.textContent="🔓 Mở file";}};}
+function renderRouteError(message){$('app').innerHTML=`<main class="login"><section class="login-card"><div class="logo">R</div><h1>RoomDrive</h1><p>${esc(message)}</p><button class="btn primary" id="routeHome">← Về trang chủ</button></section></main>`;$('routeHome').onclick=()=>{location.hash="";handleRoute();};}
+
+
+async function deleteFile(fileId){if(!confirm("Xóa file này khỏi phòng?"))return;const r=state.joined.meta;if(r.ownerUid!==auth.currentUser?.uid){toast("❌ Chỉ chủ phòng mới được xóa file","bad");return;}try{await remove(ref(db,`rooms/${r.roomId}/filesMeta/${fileId}`));await remove(ref(db,`rooms/${r.roomId}/fileData/${fileId}`));toast("✅ Đã xóa file","good");}catch(e){toast("❌ "+humanError(e),"bad");}}
+async function deleteRoom(roomId){if(!confirm("Xóa phòng và toàn bộ dữ liệu file của phòng? Hành động này không thể hoàn tác."))return;try{await remove(ref(db,`users/${auth.currentUser.uid}/rooms/${roomId}`));await remove(ref(db,`rooms/${roomId}`));toast("✅ Đã xóa phòng","good");}catch(e){toast("❌ Không thể xóa: "+humanError(e),"bad");}}
+function openEditRoom(){const r=state.joined.meta;openModal(`<div class="modal-head"><h3>⚙️ Cài đặt phòng</h3><button class="x" id="close">✕</button></div><div class="field"><label>Tên phòng</label><input id="editName" value="${esc(r.roomName)}" maxlength="80"></div><div class="field"><label>Mật khẩu mới (để trống nếu giữ nguyên)</label><div style="display:flex;gap:7px"><input id="editPass" type="password"><button class="btn outline small" id="editEye">👁</button></div></div><div class="field"><label class="toggle"><span>Cho thành viên upload</span><input id="editAllow" type="checkbox" ${r.allowUploads!==false?'checked':''}></label></div><div class="modal-actions"><button class="btn outline" id="cancel">Hủy</button><button class="btn primary" id="saveEdit">Lưu thay đổi</button></div>`);$('close').onclick=closeModal;$('cancel').onclick=closeModal;$('editEye').onclick=()=>{$('editPass').type=$('editPass').type==='password'?'text':'password';};$('saveEdit').onclick=saveEditRoom;}
+async function saveEditRoom(){const r=state.joined.meta;try{const next={roomName:$('editName').value.trim()||r.roomName,allowUploads:$('editAllow').checked,updatedAt:nowish()};if($('editPass').value.trim())next.passwordHash=await hashPassword($('editPass').value.trim());const merged={...r,...next};const updates={};updates[`rooms/${r.roomId}/meta`]=merged;updates[`users/${auth.currentUser.uid}/rooms/${r.roomId}`]=merged;await update(ref(db),updates);closeModal();toast("✅ Đã cập nhật phòng","good");}catch(e){toast("❌ "+humanError(e),"bad");}}
+
+async function googleLogin(){try{const provider=new GoogleAuthProvider();provider.setCustomParameters({prompt:"select_account"});await signInWithPopup(auth,provider);}catch(e){if(e?.code==='auth/popup-blocked'||e?.code==='auth/web-storage-unsupported'||e?.code==='auth/operation-not-supported-in-this-environment'){try{await signInWithRedirect(auth,new GoogleAuthProvider());}catch(x){toast("❌ "+humanError(x),"bad");}}else toast("❌ "+humanError(e),"bad");}}
+
+function bindAuth(){onAuthStateChanged(auth,user=>{state.user=user; if(state.unsubRooms){state.unsubRooms();state.unsubRooms=null;}if(user){renderApp();if(!user.isAnonymous){state.unsubRooms=onValue(ref(db,`users/${user.uid}/rooms`),snap=>{state.rooms=snap.val()||{};if(!state.joined)showHome();});}else{state.rooms={};showHome();}}else{state.user=null;state.rooms={};renderLogin();}});}
+
+async function handleRoute(){const h=location.hash||"";let m=h.match(/^#\/file\/([^/]+)\/([^/]+)$/);if(m){await openSharedFileLink(decodeURIComponent(m[1]),decodeURIComponent(m[2]));return;}m=h.match(/^#room=(.+)$/);if(m){if(auth.currentUser)await enterRoom(decodeURIComponent(m[1]));else openJoinModal(decodeURIComponent(m[1]));return;}}
+window.addEventListener('hashchange',handleRoute);
+
+try{await ensureSampleRoom();}catch(e){console.warn(e)}
+try{const rr=await getRedirectResult(auth);if(rr?.user)toast("✅ Đăng nhập Google thành công","good");}catch(e){toast("❌ Google redirect: "+humanError(e),"bad");}
+bindAuth();
+setTimeout(()=>handleRoute(),800);
+
+window.addEventListener('unhandledrejection',e=>{console.error(e.reason);toast("❌ "+humanError(e.reason),"bad");});
+window.addEventListener('error',e=>{console.error(e.error||e.message);});
 </script>
 </body>
 </html>
