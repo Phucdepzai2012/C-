@@ -303,8 +303,8 @@ async function streamVideoChunks(meta,mount,statusEl,progressEl,onReady){
     await new Promise((resolve,reject)=>{const onOpen=()=>{try{const codec=videoMimeCandidates(meta).find(x=>MediaSource.isTypeSupported?.(x));if(!codec)throw new Error('Browser không hỗ trợ stream video này.');sourceBuffer=ms.addSourceBuffer(codec);sourceBuffer.mode='segments';resolve()}catch(e){reject(e)}};ms.addEventListener('sourceopen',onOpen,{once:true});ms.addEventListener('error',()=>reject(new Error('MediaSource lỗi.')),{once:true})});
     (async()=>{
       try{
-        // Fetch a few chunks immediately so playback can start without waiting for the whole file.
-        await fetchOne(0);
+        // Fetch the first chunk immediately; playback continues in the background.
+        fetchOne(0).catch(e=>{statusEl.textContent='❌ Không tải được phần đầu video: '+errMsg(e)});
         for(let i=1;i<Math.min(3,total);i++)fetchOne(i).catch(()=>{});
         while(appendIndex<total&&!stopped){
           if(!fetched.has(appendIndex)){await fetchOne(appendIndex);}
@@ -318,9 +318,16 @@ async function streamVideoChunks(meta,mount,statusEl,progressEl,onReady){
         const fullBlob=new Blob(fullParts,{type:meta.contentType||'video/webm'});await cacheBlob(meta,fullBlob);await onReady?.(fullBlob);mount._fullBlobResolve(fullBlob);statusEl.textContent='✅ Video đã sẵn sàng — đổi độ phân giải không tải chunk lại';
       }catch(e){mount._fullBlobReject(e);statusEl.textContent='❌ Stream video lỗi: '+errMsg(e)}
     })();
-    // Wait only until playback has real data, not until every chunk is downloaded.
-    await Promise.race([new Promise(resolve=>{const ready=()=>{video.removeEventListener('loadeddata',ready);video.removeEventListener('canplay',ready);resolve()};video.addEventListener('loadeddata',ready,{once:true});video.addEventListener('canplay',ready,{once:true});}),new Promise(r=>setTimeout(r,3000))]);
-    if(appendIndex===0)await new Promise(r=>setTimeout(r,80));
+    // Return immediately after the player is attached. Do not block the viewer on chunk downloads.
+    statusEl.textContent='Đang tải phần đầu…';
+    progressEl.style.width='2%';
+    const menu=createResolutionMenu(meta,'video',()=>({w:video.videoWidth,h:video.videoHeight}),async res=>{
+      if(res==='auto'){video.src=objectUrl;video.load();return video.play().catch(()=>{});}
+      const full=await mount._fullBlobPromise;
+      return processVideoResolution(meta,full,res,mount);
+    });
+    stage.appendChild(menu);
+    video.addEventListener('loadeddata',()=>{statusEl.textContent='▶️ Đang phát • đang tải nền…';video.play().catch(()=>{})},{once:true});
     return true;
   }catch(e){stopped=true;try{video.pause()}catch{}try{URL.revokeObjectURL(objectUrl)}catch{}throw e}
 }
@@ -342,16 +349,7 @@ async function viewFile(id){
       try{
         const ok=await streamVideoChunks(meta,viewer.mount,viewer.status,viewer.progress);
         if(ok){
-          const stage=viewer.mount.querySelector('.media-stage');const video=stage?.querySelector('video');
-          if(stage&&video){
-            const menu=createResolutionMenu(meta,'video',()=>({w:video.videoWidth,h:video.videoHeight}),async res=>{
-              if(res==='auto'){video.play().catch(()=>{});return null}
-              const full=await viewer.mount._fullBlobPromise;
-              return processVideoResolution(meta,full,res,viewer.mount);
-            });
-            stage.appendChild(menu);
-          }
-          viewer.status.remove();return;
+          return;
         }
       }catch(e){viewer.status.textContent='⚠️ Stream trực tiếp không khả dụng, đang tải đầy đủ…'}
     }
@@ -426,16 +424,7 @@ async function viewMetaExternal(roomId,meta){
       try{
         const ok=await streamVideoChunks(safeMeta,viewer.mount,viewer.status,viewer.progress);
         if(ok){
-          const stage=viewer.mount.querySelector('.media-stage');const video=stage?.querySelector('video');
-          if(stage&&video){
-            const menu=createResolutionMenu(safeMeta,'video',()=>({w:video.videoWidth,h:video.videoHeight}),async res=>{
-              if(res==='auto'){video.play().catch(()=>{});return null}
-              const full=await viewer.mount._fullBlobPromise;
-              return processVideoResolution(safeMeta,full,res,viewer.mount);
-            });
-            stage.appendChild(menu);
-          }
-          viewer.status.remove();return;
+          return;
         }
       }catch(e){viewer.status.textContent='⚠️ Stream trực tiếp không khả dụng, đang tải đầy đủ…'}
     }
