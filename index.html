@@ -212,7 +212,7 @@ async function cancelUpload(id){const job=uploadJobs.get(id);if(!job||!['pending
 async function updateFileStatus(fileId,status,extra={},roomId){if(!fileId||!roomId)return;await retryTask(()=>update(ref(db,`rooms/${roomId}/filesMeta/${fileId}`),{status,...extra,updatedAt:Date.now()}),'Cập nhật trạng thái file')}
 async function writeChunkBatch(job,first,last){const payload={};for(let i=first;i<last;i++){if(job.cancelled)throw new Error('__CANCELLED__');const start=i*CHUNK_SIZE,end=Math.min(job.file.size,start+CHUNK_SIZE);payload[String(i)]=toBase64(new Uint8Array(await job.file.slice(start,end).arrayBuffer()))}if(job.cancelled)throw new Error('__CANCELLED__');await retryTask(()=>{if(job.cancelled)throw new Error('__CANCELLED__');return update(ref(db,`rooms/${job.roomId}/fileData/${job.fileId}`),payload)},`Chunks ${first+1}-${last}`)}
 async function cleanupUploadArtifacts(job){if(!job?.roomId||!job?.fileId)return true;let ok=true;try{for(let first=0;first<job.totalChunks;first+=100){const updates={};for(let i=first;i<Math.min(job.totalChunks,first+100);i++)updates[`rooms/${job.roomId}/fileData/${job.fileId}/${i}`]=null;if(Object.keys(updates).length)await retryTask(()=>update(ref(db),updates),`Dọn chunk ${first+1}`)}await retryTask(()=>remove(ref(db,`rooms/${job.roomId}/filesMeta/${job.fileId}`)),'Dọn metadata upload')}catch(e){ok=false;console.warn('Upload cleanup:',e)}return ok}
-async function runUploadJob(job){job.state='uploading';setUploadProgress(job.ui,0,'Uploading...');setUploadButtons(job.ui,'uploading');try{if(!currentUser)throw new Error('Chưa đăng nhập.');if(!job.roomId)throw new Error('Không xác định phòng upload.');if(job.file.size>MAX_FILE_SIZE)throw new Error(`File vượt giới hạn ${fmtSize(MAX_FILE_SIZE)}.`);const uploaderUid=currentUser.uid;if(!job.fileId)job.fileId=crypto.randomUUID().replaceAll('-','');job.totalChunks=Math.max(1,Math.ceil(job.file.size/CHUNK_SIZE));const now=Date.now();const meta={fileId:job.fileId,name:job.file.name,size:job.file.size,contentType:job.file.type||'application/octet-stream',totalChunks:job.totalChunks,chunkSize:CHUNK_SIZE,createdAt:job.createdAt,updatedAt:now,uploaderUid,uploaderName:currentUser.displayName||'Khách',status:'uploading'};const existing=await get(ref(db,`rooms/${job.roomId}/filesMeta/${job.fileId}`));if(!existing.exists())await retryTask(()=>set(ref(db,`rooms/${job.roomId}/filesMeta/${job.fileId}`),meta),'Tạo metadata upload');for(let first=0;first<job.totalChunks;first+=UPLOAD_BATCH_CHUNKS){if(job.cancelled)throw new Error('__CANCELLED__');if(currentUser?.uid!==uploaderUid)throw new Error('Phiên đăng nhập đã thay đổi.');const last=Math.min(job.totalChunks,first+UPLOAD_BATCH_CHUNKS);await writeChunkBatch(job,first,last);if(job.cancelled)throw new Error('__CANCELLED__');setUploadProgress(job.ui,last/job.totalChunks*100,`Uploading ${last}/${job.totalChunks} chunk`)}if(job.cancelled)throw new Error('__CANCELLED__');await updateFileStatus(job.fileId,'ready',{updatedAt:Date.now()},job.roomId);try{await cacheBlob({...meta,status:'ready',updatedAt:Date.now(),_roomId:job.roomId},job.file)}catch{}job.state='completed';setUploadProgress(job.ui,100,'Completed','completed');setUploadButtons(job.ui,'completed');toast('✅ Upload thành công: '+job.file.name,'success');setTimeout(()=>job.ui?.row?.remove(),3500)}catch(e){if(e?.message==='__CANCELLED__'){job.state='cancelled';setUploadProgress(job.ui,0,'Đã hủy','cancelled');setUploadButtons(job.ui,'cancelled');if(job.fileId)await cleanupUploadArtifacts(job)}else{job.state='failed';const cleaned=job.fileId?await cleanupUploadArtifacts(job):true;setUploadProgress(job.ui,0,'Failed: '+errMsg(e),'failed');setUploadButtons(job.ui,'failed');if(!cleaned&&job.fileId){try{await updateFileStatus(job.fileId,'failed',{error:errMsg(e)},job.roomId)}catch{}}toast('❌ '+job.file.name+': '+errMsg(e),'error')}}finally{pumpUploadQueue()}}
+async function runUploadJob(job){job.state='uploading';setUploadProgress(job.ui,0,'Uploading...');setUploadButtons(job.ui,'uploading');try{if(!currentUser)throw new Error('Chưa đăng nhập.');if(!job.roomId)throw new Error('Không xác định phòng upload.');if(job.file.size>MAX_FILE_SIZE)throw new Error(`File vượt giới hạn ${fmtSize(MAX_FILE_SIZE)}.`);const uploaderUid=currentUser.uid;if(!job.fileId)job.fileId=crypto.randomUUID().replaceAll('-','');job.totalChunks=Math.max(1,Math.ceil(job.file.size/CHUNK_SIZE));const now=Date.now();const meta={fileId:job.fileId,name:job.file.name,size:job.file.size,contentType:job.file.type||'application/octet-stream',totalChunks:job.totalChunks,chunkSize:CHUNK_SIZE,createdAt:job.createdAt,updatedAt:now,uploaderUid,uploaderName:currentUser.displayName||'Khách',status:'uploading'};const existing=await get(ref(db,`rooms/${job.roomId}/filesMeta/${job.fileId}`));if(!existing.exists())await retryTask(()=>set(ref(db,`rooms/${job.roomId}/filesMeta/${job.fileId}`),meta),'Tạo metadata upload');for(let first=0;first<job.totalChunks;first+=UPLOAD_BATCH_CHUNKS){if(job.cancelled)throw new Error('__CANCELLED__');if(currentUser?.uid!==uploaderUid)throw new Error('Phiên đăng nhập đã thay đổi.');const last=Math.min(job.totalChunks,first+UPLOAD_BATCH_CHUNKS);await writeChunkBatch(job,first,last);if(job.cancelled)throw new Error('__CANCELLED__');setUploadProgress(job.ui,last/job.totalChunks*100,`Uploading ${last}/${job.totalChunks} chunk`)}if(job.cancelled)throw new Error('__CANCELLED__');const readyUpdatedAt=Date.now();const readyMeta={...meta,status:'ready',updatedAt:readyUpdatedAt,_roomId:job.roomId};await updateFileStatus(job.fileId,'ready',{updatedAt:readyUpdatedAt},job.roomId);try{await cacheBlob(readyMeta,job.file)}catch{}job.state='completed';setUploadProgress(job.ui,100,'Completed','completed');setUploadButtons(job.ui,'completed');toast('✅ Upload thành công: '+job.file.name,'success');setTimeout(()=>job.ui?.row?.remove(),3500)}catch(e){if(e?.message==='__CANCELLED__'){job.state='cancelled';setUploadProgress(job.ui,0,'Đã hủy','cancelled');setUploadButtons(job.ui,'cancelled');if(job.fileId)await cleanupUploadArtifacts(job)}else{job.state='failed';const cleaned=job.fileId?await cleanupUploadArtifacts(job):true;setUploadProgress(job.ui,0,'Failed: '+errMsg(e),'failed');setUploadButtons(job.ui,'failed');if(!cleaned&&job.fileId){try{await updateFileStatus(job.fileId,'failed',{error:errMsg(e)},job.roomId)}catch{}}toast('❌ '+job.file.name+': '+errMsg(e),'error')}}finally{pumpUploadQueue()}}
 
 function previewKind(name){const e=ext(name);if(['mp4','webm','mov','m4v','avi'].includes(e))return 'video';if(['mp3','wav','ogg','m4a','aac'].includes(e))return 'audio';if(['jpg','jpeg','png','gif','webp','svg','bmp','avif'].includes(e))return 'image';return 'generic'}
 function rememberPreviewUrl(fileId,url){if(!previewUrls.has(fileId))previewUrls.set(fileId,new Set());previewUrls.get(fileId).add(url);return url}
@@ -278,97 +278,50 @@ async function deleteCachedBlob(fileId){blobCache.delete(fileId);try{const dbx=a
 function decodeBase64(value){const bin=atob(value);const out=new Uint8Array(bin.length);const step=0x8000;for(let i=0;i<bin.length;i+=step){const end=Math.min(bin.length,i+step);for(let j=i;j<end;j++)out[j]=bin.charCodeAt(j)}return out}
 async function readAllChunksFast(meta,onProgress){const total=Math.max(1,Number(meta.totalChunks)||1);const roomId=meta._roomId||currentRoomId;const parts=new Array(total);let loaded=0;let cursor=0;const concurrency=Math.min(6,total);async function worker(){while(true){const i=cursor++;if(i>=total)return;const snap=await retryTask(()=>get(ref(db,`rooms/${roomId}/fileData/${meta.fileId}/${i}`)),`Chunk ${i+1}/${total}`);if(!snap.exists()||typeof snap.val()!=='string')throw new Error(`Thiếu chunk ${i+1}/${total}.`);parts[i]=decodeBase64(snap.val());loaded++;onProgress?.(loaded,total)}}await Promise.all(Array.from({length:concurrency},worker));return new Blob(parts,{type:meta.contentType||'application/octet-stream'})}
 async function readFileBlob(meta,onProgress){const cached=await getCachedBlob(meta);if(cached){onProgress?.(1,1);return cached}const blob=await readAllChunksFast(meta,onProgress);await cacheBlob(meta,blob);return blob}
-function videoMimeCandidates(meta){
-  const type=String(meta.contentType||'').toLowerCase();
-  if(type.includes('mp4'))return ['video/mp4; codecs="avc1.42E01E,mp4a.40.2"','video/mp4'];
-  if(type.includes('webm'))return ['video/webm; codecs="vp9,opus"','video/webm; codecs="vp8,opus"','video/webm'];
-  return [];
-}
-function canProgressivelyStream(meta){
-  if(!window.MediaSource)return false;
-  return videoMimeCandidates(meta).some(x=>MediaSource.isTypeSupported?.(x));
-}
-async function streamVideoChunks(meta,mount,statusEl,progressEl,onReady){
-  if(!canProgressivelyStream(meta))return false;
-  const roomId=meta._roomId||currentRoomId,total=Math.max(1,Number(meta.totalChunks)||1);
-  const ms=new MediaSource(),objectUrl=URL.createObjectURL(ms),video=document.createElement('video');
-  video.controls=true;video.autoplay=true;video.playsInline=true;video.preload='auto';video.src=objectUrl;
-  const stage=document.createElement('div');stage.className='media-stage';stage.appendChild(video);mount.replaceChildren(stage);
-  const fullParts=new Array(total);let sourceBuffer=null,stopped=false,started=false,appendIndex=0,completed=0;
-  const fetched=new Map(),fetching=new Set();
-  mount._fullBlobPromise=new Promise((resolve,reject)=>{mount._fullBlobResolve=resolve;mount._fullBlobReject=reject});
-  const appendBuffer=bytes=>new Promise((resolve,reject)=>{if(!sourceBuffer)return reject(new Error('SourceBuffer chưa sẵn sàng.'));const finish=()=>{cleanup();resolve()};const fail=()=>{cleanup();reject(new Error('MediaSource append lỗi.'))};const cleanup=()=>{sourceBuffer.removeEventListener('updateend',finish);sourceBuffer.removeEventListener('error',fail)};sourceBuffer.addEventListener('updateend',finish,{once:true});sourceBuffer.addEventListener('error',fail,{once:true});try{sourceBuffer.appendBuffer(bytes)}catch(e){cleanup();reject(e)}});
-  const fetchOne=async i=>{if(fetching.has(i)||fetched.has(i)||i>=total)return;fetching.add(i);try{const snap=await retryTask(()=>get(ref(db,`rooms/${roomId}/fileData/${meta.fileId}/${i}`)),`Chunk ${i+1}/${total}`);if(!snap.exists()||typeof snap.val()!=='string')throw new Error(`Thiếu chunk ${i+1}/${total}.`);fetched.set(i,decodeBase64(snap.val()))}finally{fetching.delete(i)}};
-  try{
-    await new Promise((resolve,reject)=>{const onOpen=()=>{try{const codec=videoMimeCandidates(meta).find(x=>MediaSource.isTypeSupported?.(x));if(!codec)throw new Error('Browser không hỗ trợ stream video này.');sourceBuffer=ms.addSourceBuffer(codec);sourceBuffer.mode='segments';resolve()}catch(e){reject(e)}};ms.addEventListener('sourceopen',onOpen,{once:true});ms.addEventListener('error',()=>reject(new Error('MediaSource lỗi.')),{once:true})});
-    (async()=>{
-      try{
-        // Fetch the first chunk immediately; playback continues in the background.
-        fetchOne(0).catch(e=>{statusEl.textContent='❌ Không tải được phần đầu video: '+errMsg(e)});
-        for(let i=1;i<Math.min(3,total);i++)fetchOne(i).catch(()=>{});
-        while(appendIndex<total&&!stopped){
-          if(!fetched.has(appendIndex)){await fetchOne(appendIndex);}
-          const bytes=fetched.get(appendIndex);fetched.delete(appendIndex);fullParts[appendIndex]=bytes;await appendBuffer(bytes);appendIndex++;completed++;
-          const pct=Math.round(completed/total*100);progressEl.style.width=pct+'%';statusEl.textContent=`Đang tải video ${completed}/${total} phần (${pct}%)`;
-          // Keep a small rolling prefetch window; no giant request burst.
-          for(let i=appendIndex+1;i<Math.min(total,appendIndex+4);i++){if(!fetched.has(i)&&!fetching.has(i))fetchOne(i).catch(()=>{})}
-          if(!started){started=true;video.play().catch(()=>{})}
-        }
-        if(ms.readyState==='open')try{ms.endOfStream()}catch{}
-        const fullBlob=new Blob(fullParts,{type:meta.contentType||'video/webm'});await cacheBlob(meta,fullBlob);await onReady?.(fullBlob);mount._fullBlobResolve(fullBlob);statusEl.textContent='✅ Video đã sẵn sàng — đổi độ phân giải không tải chunk lại';
-      }catch(e){mount._fullBlobReject(e);statusEl.textContent='❌ Stream video lỗi: '+errMsg(e)}
-    })();
-    // Return immediately after the player is attached. Do not block the viewer on chunk downloads.
-    statusEl.textContent='Đang tải phần đầu…';
-    progressEl.style.width='2%';
-    const menu=createResolutionMenu(meta,'video',()=>({w:video.videoWidth,h:video.videoHeight}),async res=>{
-      if(res==='auto'){video.src=objectUrl;video.load();return video.play().catch(()=>{});}
-      const full=await mount._fullBlobPromise;
-      return processVideoResolution(meta,full,res,mount);
-    });
-    stage.appendChild(menu);
-    video.addEventListener('loadeddata',()=>{statusEl.textContent='▶️ Đang phát • đang tải nền…';video.play().catch(()=>{})},{once:true});
-    return true;
-  }catch(e){stopped=true;try{video.pause()}catch{}try{URL.revokeObjectURL(objectUrl)}catch{}throw e}
-}
-
 function triggerDownloadBlob(blob,name){
   try{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.rel='noopener';a.style.display='none';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}catch(e){toast('❌ Không thể tải file: '+errMsg(e),'error')}
 }
 
 async function downloadFile(id){try{const base=currentFiles[id]||((activeViewerMeta&&activeViewerMeta.fileId===id)?activeViewerMeta:null);const meta=base?{...base}:null;const roomId=meta?meta._roomId||currentRoomId:null;if(!meta?.name||!roomId||meta.status!=='ready')throw new Error('File chưa ở trạng thái sẵn sàng.');meta._roomId=roomId;const blob=await readFileBlob(meta);triggerDownloadBlob(blob,meta.name);toast('✅ Đã bắt đầu tải '+meta.name,'success')}catch(e){toast('❌ Tải xuống lỗi: '+errMsg(e),'error')}}
 async function viewFile(id){
-  const base=currentFiles[id]||((activeViewerMeta&&activeViewerMeta.fileId===id)?activeViewerMeta:null);const meta=base?{...base,_roomId:base._roomId||currentRoomId}:null;
+  const base=currentFiles[id]||((activeViewerMeta&&activeViewerMeta.fileId===id)?activeViewerMeta:null);
+  const meta=base?{...base,_roomId:base._roomId||currentRoomId}:null;
   if(!meta){toast('❌ Không tìm thấy file.','error');return}
-  if(meta.status!=='ready'){toast('⚠️ File chưa upload xong.','warn');return}
+  if(meta.status!=='ready'){toast('⚠️ File chưa upload xong. Trạng thái hiện tại: '+String(meta.status||'unknown'),'warn');return}
   const viewer=makeLoadingViewer(meta);
   try{
+    // Upload xong mới được đánh dấu ready. Ưu tiên cache IndexedDB/RAM để lần xem lại là gần như tức thì.
     const cached=await getCachedBlob(meta);
-    if(cached){await openBlobViewerInto(viewer.mount,meta,cached);viewer.status.remove();return}
-    if(previewKind(meta.name)==='video'&&canProgressivelyStream(meta)){
-      try{
-        const ok=await streamVideoChunks(meta,viewer.mount,viewer.status,viewer.progress);
-        if(ok){
-          return;
-        }
-      }catch(e){viewer.status.textContent='⚠️ Stream trực tiếp không khả dụng, đang tải đầy đủ…'}
+    if(cached){
+      await openBlobViewerInto(viewer.mount,meta,cached);
+      viewer.status.remove();
+      return;
     }
-    const blob=await readAllChunksFast(meta,(done,total)=>{viewer.status.textContent=`Đang tải ${done}/${total} phần (${Math.round(done/total*100)}%)`;viewer.progress.style.width=Math.max(5,done/total*100)+'%'});
-    await cacheBlob(meta,blob);await openBlobViewerInto(viewer.mount,meta,blob);viewer.status.remove();
-  }catch(e){viewer.status.textContent='❌ '+errMsg(e);toast('❌ Không mở được file: '+errMsg(e),'error')}
+    viewer.status.textContent='Đang tải dữ liệu video/file lần đầu…';
+    viewer.progress.style.width='4%';
+    const blob=await readAllChunksFast(meta,(done,total)=>{
+      const pct=Math.round(done/total*100);
+      viewer.status.textContent=`Đang tải dữ liệu ${done}/${total} phần (${pct}%)`;
+      viewer.progress.style.width=Math.max(4,pct)+'%';
+    });
+    await cacheBlob(meta,blob);
+    await openBlobViewerInto(viewer.mount,meta,blob);
+    viewer.status.remove();
+  }catch(e){
+    viewer.status.textContent='❌ '+errMsg(e);
+    toast('❌ Không mở được file: '+errMsg(e),'error');
+  }
 }
 
-function cleanupViewerUrls(root){if(!root)return;for(const url of root._objectUrls||[])URL.revokeObjectURL(url);root._objectUrls=[]}
-function keepViewerUrl(root,url){if(!root._objectUrls)root._objectUrls=[];root._objectUrls.push(url);return url}
 function makeLoadingViewer(meta){activeViewerMeta=meta;const v=document.createElement('div');v.className='viewer';v.innerHTML=`<div class="viewer-top"><button class="btn btn-ghost" style="color:#fff" onclick="closeViewer()">←</button><div class="viewer-title">${esc(meta.name)}</div><button class="btn btn-secondary btn-small" onclick="copyFileLink('${esc(meta.fileId)}')">🔗 Link</button><button class="btn btn-primary btn-small" onclick="downloadFile('${esc(meta.fileId)}')">Tải xuống</button></div><div class="viewer-body"><div id="viewerMount" class="viewer-content"><div class="card" style="min-width:280px;text-align:center"><div style="font-size:48px">${typeIcon(meta.name)}</div><h3 style="margin:8px 0">${esc(meta.name)}</h3><div id="viewerStatus" class="muted">Đang chuẩn bị...</div><div style="height:7px;background:#e6e9ee;border-radius:20px;overflow:hidden;margin-top:14px"><div id="viewerProgress" style="height:100%;width:5%;background:#1a73e8;transition:width .15s"></div></div></div></div></div>`;v._objectUrls=[];document.body.appendChild(v);if(!window.__viewerKeyHandler){window.__viewerKeyHandler=e=>{if(e.key==='Escape')closeViewer()};document.addEventListener('keydown',window.__viewerKeyHandler)}return{v,mount:$('#viewerMount',v),status:$('#viewerStatus',v),progress:$('#viewerProgress',v)}}
 function closeViewer(){const v=document.querySelector('.viewer');if(v){cleanupViewerUrls(v);v.remove()}activeViewerMeta=null}
 async function openBlobViewer(meta,blob){const viewer=makeLoadingViewer(meta);await openBlobViewerInto(viewer.mount,meta,blob);viewer.status.remove()}
-const RES_PRESETS=[['360p',640,360],['480p',854,480],['720p',1280,720],['1080p',1920,1080],['1440p',2560,1440],['4K',3840,2160]];
+const RES_PRESETS=[['144p',256,144],['360p',640,360],['480p',854,480],['720p',1280,720],['1080p',1920,1080]];
 function clampResolution(srcW,srcH,targetW,targetH){const scale=Math.min(1,targetW/srcW,targetH/srcH);return {w:Math.max(1,Math.round(srcW*scale)),h:Math.max(1,Math.round(srcH*scale))}}
 async function resizeImageBlob(blob,res,onProgress){const img=new Image();const src=URL.createObjectURL(blob);try{await new Promise((ok,fail)=>{img.onload=ok;img.onerror=()=>fail(new Error('Không đọc được ảnh.'));img.src=src});onProgress?.(.25);const [tw,th]=res.split('x').map(Number);const {w,h}=clampResolution(img.naturalWidth,img.naturalHeight,tw,th);const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d',{alpha:true});if(!ctx)throw new Error('Canvas không khả dụng.');ctx.drawImage(img,0,0,w,h);onProgress?.(.8);const out=await new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(new Error('Không tạo được WebP.')),'image/webp',.92));onProgress?.(1);return {blob:out,w,h}}finally{URL.revokeObjectURL(src)}}
 async function transcodeVideoBlob(blob,res,onProgress){
   if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream)throw new Error('Trình duyệt không hỗ trợ transcoding video bằng MediaRecorder/canvas.');
-  const video=document.createElement('video');video.preload='auto';video.playsInline=true;video.muted=true;const sourceUrl=URL.createObjectURL(blob);video.src=sourceUrl;
+  const video=document.createElement('video');video.preload='auto';video.playsInline=true;video.muted=false;video.volume=0;video.crossOrigin='anonymous';const sourceUrl=URL.createObjectURL(blob);video.src=sourceUrl;
   let outputStream=null,audioStream=null,raf=0,finished=false;
   try{
     await new Promise((resolve,reject)=>{video.onloadedmetadata=resolve;video.onerror=()=>reject(new Error('Không đọc được metadata video.'))});
@@ -377,6 +330,7 @@ async function transcodeVideoBlob(blob,res,onProgress){
     const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(x=>MediaRecorder.isTypeSupported(x));if(!mime)throw new Error('Browser không hỗ trợ codec WebM phù hợp.');
     const recorder=new MediaRecorder(outputStream,{mimeType:mime,videoBitsPerSecond:Math.max(1200000,Math.min(24000000,w*h*3))});const chunks=[];const stopped=new Promise((resolve,reject)=>{recorder.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data)};recorder.onerror=()=>reject(recorder.error||new Error('MediaRecorder lỗi'));recorder.onstop=resolve});
     const stop=()=>{if(finished)return;finished=true;try{video.pause()}catch{}try{recorder.stop()}catch{}};
+    await new Promise((resolve,reject)=>{if(video.readyState>=2)resolve();else{const ok=()=>{cleanup();resolve()};const fail=()=>{cleanup();reject(new Error('Video không giải mã được để mã hóa.'))};const cleanup=()=>{video.removeEventListener('canplay',ok);video.removeEventListener('error',fail)};video.addEventListener('canplay',ok,{once:true});video.addEventListener('error',fail,{once:true})}});
     await video.play();recorder.start(250);
     await new Promise((resolve,reject)=>{const tick=()=>{try{if(video.error)return reject(new Error('Video phát lỗi trong lúc mã hóa.'));ctx.drawImage(video,0,0,w,h);const ratio=video.duration?Math.min(1,video.currentTime/video.duration):0;onProgress?.(ratio);if(video.ended||ratio>=.999){stop();resolve();return}raf=requestAnimationFrame(tick)}catch(e){stop();reject(e)}};video.addEventListener('ended',()=>{stop();resolve()},{once:true});tick()});
     if(raf)cancelAnimationFrame(raf);await stopped;const out=new Blob(chunks,{type:mime});if(!out.size)throw new Error('Video output rỗng.');return {blob:out,w,h,mime};
@@ -416,21 +370,30 @@ async function openFileFromLink(roomId,fileId){try{const s=await get(ref(db,`roo
 function renderFileGate(meta,roomId,fileId){renderShell(`<main class="container"><div class="card auth-card"><h1 class="auth-title">${typeIcon('x')} ${esc(meta.roomName)}</h1><p>Link file đã được tạo tự động. Nhập mật khẩu phòng để xem file.</p><div class="room-meta" style="margin-bottom:15px">Mã phòng: <b>${esc(roomId)}</b><br>File: <b>${esc(fileId)}</b></div><div><label class="label">Mật khẩu phòng</label><div class="input-row"><input id="fileGatePass" class="input" type="password"><button class="btn btn-secondary" onclick="toggleField('fileGatePass',this)">👁</button></div></div><div class="modal-actions" style="justify-content:flex-start"><button class="btn btn-primary" onclick="authFileGate('${esc(roomId)}','${esc(fileId)}')">Xem file</button><button class="btn btn-secondary" onclick="location.hash='/'">← Về trang chủ</button></div></div></main>`)}
 async function authFileGate(roomId,fileId){try{const pass=String($('#fileGatePass')?.value||'');const ms=await get(ref(db,`rooms/${roomId}/meta`));if(!ms.exists())throw new Error('Không tìm thấy phòng.');const meta=ms.val();const checked=await verifyRoomPassword(pass,meta);if(!checked.ok)throw new Error(checked.reason==='Mật khẩu không khớp'?'❌ Sai mật khẩu.':'❌ '+checked.reason);const user=await ensureUserForRoom();if(!user)throw new Error('Không tạo được phiên người dùng.');if(meta.ownerUid!==user.uid)await set(ref(db,`users/${user.uid}/joinedRooms/${roomId}`),{roomId,roomName:meta.roomName,ownerUid:meta.ownerUid,ownerEmail:meta.ownerEmail||'',ownerName:meta.ownerName||'',joinedAt:Date.now(),role:'member'});const fm=await get(ref(db,`rooms/${roomId}/filesMeta/${fileId}`));if(!fm.exists())throw new Error('File không tồn tại.');const f=fm.val();f._roomId=roomId;if(f.status!=='ready')throw new Error('File chưa sẵn sàng hoặc đã bị xóa.');await viewMetaExternal(roomId,f)}catch(e){toast('❌ '+errMsg(e),'error')}}
 async function viewMetaExternal(roomId,meta){
-  const safeMeta={...meta,_roomId:roomId};const viewer=makeLoadingViewer(safeMeta);
+  const safeMeta={...meta,_roomId:roomId};
+  const viewer=makeLoadingViewer(safeMeta);
   try{
+    // Ưu tiên cache cục bộ đã được tạo khi upload/preview trước đó.
     const cached=await getCachedBlob(safeMeta);
-    if(cached){await openBlobViewerInto(viewer.mount,safeMeta,cached);viewer.status.remove();return}
-    if(previewKind(safeMeta.name)==='video'&&canProgressivelyStream(safeMeta)){
-      try{
-        const ok=await streamVideoChunks(safeMeta,viewer.mount,viewer.status,viewer.progress);
-        if(ok){
-          return;
-        }
-      }catch(e){viewer.status.textContent='⚠️ Stream trực tiếp không khả dụng, đang tải đầy đủ…'}
+    if(cached){
+      await openBlobViewerInto(viewer.mount,safeMeta,cached);
+      viewer.status.remove();
+      return;
     }
-    const blob=await readAllChunksFast(safeMeta,(done,total)=>{viewer.status.textContent=`Đang tải ${done}/${total} phần (${Math.round(done/total*100)}%)`;viewer.progress.style.width=Math.max(8,done/total*100)+'%'});
-    await cacheBlob(safeMeta,blob);await openBlobViewerInto(viewer.mount,safeMeta,blob);viewer.status.remove()
-  }catch(e){viewer.status.textContent='❌ '+errMsg(e);toast('❌ Không mở được file: '+errMsg(e),'error')}
+    viewer.status.textContent='Đang tải dữ liệu file lần đầu…';
+    viewer.progress.style.width='4%';
+    const blob=await readAllChunksFast(safeMeta,(done,total)=>{
+      const pct=Math.round(done/total*100);
+      viewer.status.textContent=`Đang tải dữ liệu ${done}/${total} phần (${pct}%)`;
+      viewer.progress.style.width=Math.max(4,pct)+'%';
+    });
+    await cacheBlob(safeMeta,blob);
+    await openBlobViewerInto(viewer.mount,safeMeta,blob);
+    viewer.status.remove();
+  }catch(e){
+    viewer.status.textContent='❌ '+errMsg(e);
+    toast('❌ Không mở được file: '+errMsg(e),'error');
+  }
 }
 
 
